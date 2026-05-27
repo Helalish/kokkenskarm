@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --shopbox-primary: #111111;
+  --shopbox-accent: #22C55E;
+  --shopbox-light: #E7F5F1;
+  --shopbox-surface: #000000;
+  --shopbox-card: #1A1A1A;
+  --shopbox-card-hover: #252525;
+  --shopbox-border: #333333;
+  --shopbox-warning: #F59E0B;
+  --shopbox-critical: #EF4444;
+  --shopbox-muted: #707070;
+  --shopbox-text: #FFFFFF;
+  --shopbox-text-secondary: #B0B0B0;
+
+  --background: var(--shopbox-surface);
+  --foreground: var(--shopbox-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-shopbox-primary: var(--shopbox-primary);
+  --color-shopbox-accent: var(--shopbox-accent);
+  --color-shopbox-light: var(--shopbox-light);
+  --color-shopbox-surface: var(--shopbox-surface);
+  --color-shopbox-card: var(--shopbox-card);
+  --color-shopbox-card-hover: var(--shopbox-card-hover);
+  --color-shopbox-border: var(--shopbox-border);
+  --color-shopbox-warning: var(--shopbox-warning);
+  --color-shopbox-critical: var(--shopbox-critical);
+  --color-shopbox-muted: var(--shopbox-muted);
+  --color-shopbox-text: var(--shopbox-text);
+  --color-shopbox-text-secondary: var(--shopbox-text-secondary);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-lexend), sans-serif;
+}
+
+/* Prevent text selection on order cards (kitchen environment) */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Smooth order card transitions */
+.order-card-enter {
+  animation: cardEnter 0.3s ease-out;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Flash animation for new orders */
+.order-flash {
+  animation: flash 0.6s ease-in-out 2;
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Timer pulse for critical orders */
+.timer-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Toast slide-in animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* New order highlight glow */
+.order-new-glow {
+  animation: newGlow 1.5s ease-out;
+}
+
+@keyframes newGlow {
+  0% {
+    box-shadow: 0 0 20px rgba(14, 158, 115, 0.6), 0 0 40px rgba(14, 158, 115, 0.3);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+/* Stage-change pulse animation */
+.stage-change-pulse {
+  animation: stageChangePulse 0.6s ease-out;
+}
+
+@keyframes stageChangePulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--pulse-color, rgba(14, 158, 115, 0.5));
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px var(--pulse-color, rgba(14, 158, 115, 0.3));
+  }
+  100% {
+    box-shadow: none;
+    transform: scale(1);
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--shopbox-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--shopbox-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--shopbox-muted);
 }
