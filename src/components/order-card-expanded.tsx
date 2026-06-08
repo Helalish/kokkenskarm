@@ -17,7 +17,7 @@ interface OrderCardExpandedProps {
 }
 
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
-  const { advanceStage, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
+  const { advanceStage, dismissOrder, toggleItemDone, toggleAllItemsDone } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
   const { timerWarningSeconds, timerCriticalSeconds, smsEnabled } = useSettingsStore();
   const t = useT();
@@ -174,10 +174,12 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
               {t("expanded.items", { done: doneCount, total: totalCount })}
             </p>
             <button
-              onClick={() => markAllItemsDone(order.id)}
+              onClick={() => toggleAllItemsDone(order.id)}
               className="text-xs text-shopbox-accent hover:underline"
             >
-              {t("expanded.markAllDone")}
+              {totalCount > 0 && doneCount === totalCount
+                ? t("expanded.unmarkAll")
+                : t("expanded.markAllDone")}
             </button>
           </div>
           <div className="space-y-1">

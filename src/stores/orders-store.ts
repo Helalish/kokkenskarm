@@ -13,6 +13,7 @@ interface OrdersState {
   completeOrder: (orderId: string) => void;
   toggleItemDone: (orderId: string, itemId: string) => void;
   markAllItemsDone: (orderId: string) => void;
+  toggleAllItemsDone: (orderId: string) => void;
   acknowledgeChanges: (orderId: string) => void;
   dismissOrder: (orderId: string) => void;
   undoDismiss: () => Order | null;
@@ -79,6 +80,17 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
             }
           : o
       ),
+    }));
+  },
+
+  toggleAllItemsDone: (orderId) => {
+    set((state) => ({
+      orders: state.orders.map((o) => {
+        if (o.id !== orderId) return o;
+        // Tap once marks all as done; tap again clears all.
+        const allDone = o.items.length > 0 && o.items.every((item) => item.isDone);
+        return { ...o, items: o.items.map((item) => ({ ...item, isDone: !allDone })) };
+      }),
     }));
   },
 
