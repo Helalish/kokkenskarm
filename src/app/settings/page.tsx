@@ -2,33 +2,38 @@
 
 import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 import { DEMO_STAGES } from "@/lib/demo-pipeline";
+import { useT } from "@/hooks/use-t";
+import { LanguageToggle } from "@/components/language-toggle";
 
 export default function SettingsPage() {
   const settings = useSettingsStore();
-  const isMvpMode = useMvpStore((s) => s.isMvpMode);
+  const isFullMode = useModeStore((s) => s.isFullMode);
+  const t = useT();
 
   return (
     <div className="min-h-screen bg-shopbox-surface p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-shopbox-text">Indstillinger</h1>
-          <Link
-            href="/kds"
-            className="rounded-lg bg-shopbox-accent px-4 py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 transition-colors"
-          >
-            ← Tilbage til KDS
-          </Link>
+          <h1 className="text-2xl font-bold text-shopbox-text">{t("settings.title")}</h1>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <Link
+              href="/kds"
+              className="rounded-lg bg-shopbox-accent px-4 py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 transition-colors"
+            >
+              {t("settings.backToKds")}
+            </Link>
+          </div>
         </div>
 
-        {/* Grid columns */}
+        {/* Display (Full feature only) */}
+        {isFullMode && (
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Visning</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("settings.display")}</h2>
 
           <div className="space-y-4">
-            {isMvpMode && (
-            <>
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
                 Antal kolonner: {settings.gridColumns}
@@ -87,23 +92,7 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-            </>
-            )}
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.showPipelineBar}
-                onChange={(e) => settings.updateSettings({ showPipelineBar: e.target.checked })}
-                className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
-              />
-              <div>
-                <span className="text-sm font-medium">Vis stadie-filter (pipeline-bar)</span>
-                <p className="text-xs text-shopbox-muted mt-0.5">
-                  Vis baren med stadie-filtre øverst på ordreskærmen. Kun relevant for centralen/overblik. Ikke nødvendig i køkkenet.
-                </p>
-              </div>
-            </label>
-            {isMvpMode && (
+
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -118,18 +107,18 @@ export default function SettingsPage() {
                 </p>
               </div>
             </label>
-            )}
           </div>
         </section>
+        )}
 
         {/* Timer thresholds */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Timer-tærskler</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("settings.timers")}</h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                Advarsel efter: {Math.floor(settings.timerWarningSeconds / 60)} min
+                {t("settings.timer.warning", { min: Math.floor(settings.timerWarningSeconds / 60) })}
               </label>
               <input
                 type="range"
@@ -144,7 +133,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                Kritisk efter: {Math.floor(settings.timerCriticalSeconds / 60)} min
+                {t("settings.timer.critical", { min: Math.floor(settings.timerCriticalSeconds / 60) })}
               </label>
               <input
                 type="range"
@@ -159,7 +148,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                Fjern fra &quot;Klar&quot; efter: {settings.autoDismissReadySeconds === 0 ? "Slået fra" : `${Math.floor(settings.autoDismissReadySeconds / 60)} min`}
+                {t("settings.timer.autoDismiss", { value: settings.autoDismissReadySeconds === 0 ? t("settings.timer.disabled") : `${Math.floor(settings.autoDismissReadySeconds / 60)} min` })}
               </label>
               <input
                 type="range"
@@ -171,10 +160,10 @@ export default function SettingsPage() {
                 className="w-full accent-shopbox-accent"
               />
               <div className="flex justify-between text-xs text-shopbox-muted mt-1">
-                <span>Fra</span><span>2 min</span><span>5 min</span><span>10 min</span>
+                <span>{t("settings.timer.off")}</span><span>2 min</span><span>5 min</span><span>10 min</span>
               </div>
               <p className="text-xs text-shopbox-muted mt-1">
-                Ordrer i det sidste stadie fjernes automatisk efter den valgte tid. Sæt til 0 for at slå fra.
+                {t("settings.timer.helper")}
               </p>
             </div>
           </div>
@@ -182,7 +171,7 @@ export default function SettingsPage() {
 
         {/* Ordre-flow */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Ordre-flow</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("settings.orderFlow")}</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
@@ -192,9 +181,9 @@ export default function SettingsPage() {
                 className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
               />
               <div>
-                <span className="text-sm font-medium">Markér individuelle produkter</span>
+                <span className="text-sm font-medium">{t("settings.checkmarks")}</span>
                 <p className="text-xs text-shopbox-muted mt-0.5">
-                  Vis checkmarks på hvert produkt, så køkkenet kan markere dem færdige én ad gangen. Slå fra hvis I kun arbejder med hele ordrer.
+                  {t("settings.checkmarks.helper")}
                 </p>
               </div>
             </label>
@@ -207,9 +196,9 @@ export default function SettingsPage() {
                 className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
               />
               <div>
-                <span className="text-sm font-medium">Auto-skub når alle produkter er færdige</span>
+                <span className="text-sm font-medium">{t("settings.autoAdvance")}</span>
                 <p className="text-xs text-shopbox-muted mt-0.5">
-                  Når alle produkter i en ordre er markeret færdige, rykkes ordren automatisk til næste stadie.
+                  {t("settings.autoAdvance.helper")}
                 </p>
               </div>
             </label>
@@ -217,7 +206,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Sound */}
-        {isMvpMode && (
+        {isFullMode && (
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">Lyd</h2>
           <label className="flex items-center gap-3 cursor-pointer">
@@ -234,7 +223,7 @@ export default function SettingsPage() {
 
         {/* SMS */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">SMS-notifikationer</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("settings.sms")}</h2>
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -243,18 +232,18 @@ export default function SettingsPage() {
               className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
             />
             <div>
-              <span className="text-sm font-medium">Aktivér SMS</span>
+              <span className="text-sm font-medium">{t("settings.sms.enable")}</span>
               <p className="text-xs text-shopbox-muted mt-0.5">
-                {isMvpMode
+                {isFullMode
                   ? "Vis SMS-knap på ordrekort og send automatisk SMS når ordrer skifter stadie. Konfigurér beskeder per stadie under Pipeline-stadier."
-                  : "Send automatisk SMS til kunden når en ordre når \"Ready for Pick up\"."}
+                  : t("settings.sms.helperDemo")}
               </p>
             </div>
           </label>
-          {!isMvpMode && (
+          {!isFullMode && (
             <div className="mt-4">
               <label className="block text-sm text-shopbox-text-secondary mb-1">
-                Besked ved &quot;Ready for Pick up&quot;
+                {t("settings.sms.previewLabel")}
               </label>
               <input
                 type="text"
@@ -263,14 +252,14 @@ export default function SettingsPage() {
                 className="w-full rounded-lg bg-shopbox-surface border border-shopbox-border px-3 py-2 text-sm text-shopbox-text-secondary cursor-default outline-none"
               />
               <p className="text-xs text-shopbox-muted mt-1">
-                Denne besked er fast og kan ikke redigeres.
+                {t("settings.sms.previewNote")}
               </p>
             </div>
           )}
         </section>
 
         {/* Links to sub-settings */}
-        {isMvpMode && (
+        {isFullMode && (
         <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">Konfiguration</h2>
           <div className="space-y-2">

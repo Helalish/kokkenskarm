@@ -8,7 +8,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { generateInitialOrders, generateMockOrder } from "@/services/mock-data-service";
 import { filterOrdersByStation } from "@/lib/category-filter";
 import { playNewOrderSound } from "@/services/audio-service";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 import { useOrderPolling } from "@/hooks/use-order-polling";
 import { OrderGrid } from "@/components/order-grid";
 import { KanbanView } from "@/components/kanban-view";
@@ -20,8 +20,8 @@ export default function KdsPage() {
   const { orders, setOrders, addOrder, dismissOrder } = useOrdersStore();
   const { stages, getFirstStageId } = usePipeline();
   const { getActiveStation } = useStationStore();
-  const { soundEnabled, viewMode, showPipelineBar, autoDismissReadySeconds } = useSettingsStore();
-  const { isMvpMode } = useMvpStore();
+  const { soundEnabled, viewMode, autoDismissReadySeconds } = useSettingsStore();
+  const { isFullMode } = useModeStore();
   const [activeStageFilter, setActiveStageFilter] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
   const prevOrderCountRef = useRef(0);
@@ -89,7 +89,7 @@ export default function KdsPage() {
   }, [autoDismissReadySeconds, initialized, stages, orders, dismissOrder]);
 
   // MVP mode: also poll real orders from Shopbox API (when configured)
-  useOrderPolling(isMvpMode);
+  useOrderPolling(isFullMode);
 
   // Apply filters
   const activeStation = getActiveStation();
@@ -102,12 +102,12 @@ export default function KdsPage() {
   }
 
   // DEMO mode forces grid view
-  const effectiveViewMode = isMvpMode ? viewMode : "grid";
+  const effectiveViewMode = isFullMode ? viewMode : "grid";
 
   return (
     <div className="flex flex-col h-screen">
       <KdsHeader />
-      {effectiveViewMode === "grid" && showPipelineBar && (
+      {effectiveViewMode === "grid" && (
         <PipelineBar
           activeStageId={activeStageFilter}
           onStageSelect={setActiveStageFilter}

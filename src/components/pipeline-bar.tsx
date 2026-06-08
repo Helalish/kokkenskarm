@@ -2,6 +2,7 @@
 
 import { usePipeline } from "@/hooks/use-pipeline";
 import { useOrdersStore } from "@/stores/orders-store";
+import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
 interface PipelineBarProps {
@@ -12,6 +13,7 @@ interface PipelineBarProps {
 export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) {
   const { stages } = usePipeline();
   const { orders } = useOrdersStore();
+  const t = useT();
 
   const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
   const totalOrders = orders.length;
@@ -27,7 +29,7 @@ export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) 
         )}
         onClick={() => onStageSelect(null)}
       >
-        Alle ({totalOrders})
+        {t("pipelineBar.all")} ({totalOrders})
       </button>
 
       {sortedStages.map((stage) => {

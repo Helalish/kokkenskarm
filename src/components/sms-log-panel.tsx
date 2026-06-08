@@ -1,6 +1,7 @@
 "use client";
 
 import { useSmsLogStore } from "@/stores/sms-log-store";
+import { sendOrderSms } from "@/services/sms-service";
 
 interface SmsLogPanelProps {
   onClose: () => void;
@@ -10,11 +11,7 @@ export function SmsLogPanel({ onClose }: SmsLogPanelProps) {
   const { entries, clearLog } = useSmsLogStore();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16" onClick={onClose}>
-      <div
-        className="w-full max-w-lg rounded-2xl bg-shopbox-card border border-shopbox-border shadow-2xl max-h-[70vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="absolute right-0 top-full mt-2 z-50 w-96 max-h-[70vh] rounded-2xl bg-shopbox-card border border-shopbox-border shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-shopbox-border">
           <h2 className="text-lg font-bold text-shopbox-text">SMS-historik</h2>
           <div className="flex items-center gap-2">
@@ -60,12 +57,19 @@ export function SmsLogPanel({ onClose }: SmsLogPanelProps) {
                   </div>
                   <p className="text-xs text-shopbox-text-secondary mt-1">{entry.phone}</p>
                   <p className="text-xs text-shopbox-muted mt-0.5 truncate">{entry.message}</p>
+                  <button
+                    onClick={() =>
+                      sendOrderSms(entry.phone, entry.orderNumber, entry.orderId, entry.message)
+                    }
+                    className="mt-2 rounded-md bg-shopbox-accent/10 px-2.5 py-1 text-[11px] font-medium text-shopbox-accent hover:bg-shopbox-accent/20 transition-colors"
+                  >
+                    Send igen
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }

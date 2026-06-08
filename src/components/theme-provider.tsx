@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 
 /**
  * Syncs Zustand theme colors + text scale to CSS custom properties on :root.
@@ -10,9 +10,9 @@ import { useMvpStore } from "@/stores/mvp-store";
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { theme, textScale } = useSettingsStore();
-  const isMvpMode = useMvpStore((s) => s.isMvpMode);
+  const isFullMode = useModeStore((s) => s.isFullMode);
   // DEMO mode is locked to 100% text size.
-  const effectiveTextScale = isMvpMode ? textScale : 1;
+  const effectiveTextScale = isFullMode ? textScale : 1;
 
   useEffect(() => {
     const root = document.documentElement;

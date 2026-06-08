@@ -6,7 +6,7 @@ import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import { generateInitialPreOrders } from "@/services/mock-data-service";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 import { PreOrderCard } from "@/components/pre-order-card";
 import { OrderCardExpanded } from "@/components/order-card-expanded";
 import type { Order } from "@/types/order";
@@ -16,7 +16,7 @@ export default function PreOrdersPage() {
     usePreOrdersStore();
   const { addOrder } = useOrdersStore();
   const { getFirstStageId, stages } = usePipelineStore();
-  const { isMvpMode } = useMvpStore();
+  const { isFullMode } = useModeStore();
   const [initialized, setInitialized] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
 

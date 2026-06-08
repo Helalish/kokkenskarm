@@ -13,6 +13,7 @@
   --shopbox-muted: #707070;
   --shopbox-text: #FFFFFF;
   --shopbox-text-secondary: #B0B0B0;
+  --shopbox-detail: #D0D5DD;
 
   --background: var(--shopbox-surface);
   --foreground: var(--shopbox-text);
@@ -33,6 +34,7 @@
   --color-shopbox-muted: var(--shopbox-muted);
   --color-shopbox-text: var(--shopbox-text);
   --color-shopbox-text-secondary: var(--shopbox-text-secondary);
+  --color-shopbox-detail: var(--shopbox-detail);
 }
 
 body {

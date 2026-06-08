@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import {
   getEffectiveStages,
@@ -13,9 +13,9 @@ import {
 // the user-configurable store stages in MVP mode. Drop-in for the
 // `usePipelineStore()` destructure in stage-consuming components.
 export function usePipeline() {
-  const isMvpMode = useMvpStore((s) => s.isMvpMode);
+  const isFullMode = useModeStore((s) => s.isFullMode);
   const storeStages = usePipelineStore((s) => s.stages);
-  const stages = getEffectiveStages(isMvpMode, storeStages);
+  const stages = getEffectiveStages(isFullMode, storeStages);
 
   return useMemo(
     () => ({

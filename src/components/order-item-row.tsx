@@ -82,7 +82,7 @@ export function OrderItemRow({ item, dimmed, onToggleDone }: OrderItemRowProps) 
         {item.variants.length > 0 && (
           <p className={cn(
             "text-xs mt-0.5",
-            isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-text-secondary"
+            isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-detail"
           )}>
             {item.variants.join(", ")}
           </p>

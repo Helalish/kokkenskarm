@@ -1,6 +1,7 @@
 "use client";
 
 import type { PaymentStatus } from "@/types/order";
+import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
 interface PaymentBadgeProps {
@@ -8,6 +9,7 @@ interface PaymentBadgeProps {
 }
 
 export function PaymentBadge({ status }: PaymentBadgeProps) {
+  const t = useT();
   return (
     <span
       className={cn(
@@ -17,9 +19,9 @@ export function PaymentBadge({ status }: PaymentBadgeProps) {
         status === "partial" && "bg-shopbox-warning/20 text-shopbox-warning"
       )}
     >
-      {status === "paid" && "Betalt"}
-      {status === "unpaid" && "Ikke betalt"}
-      {status === "partial" && "Delvist betalt"}
+      {status === "paid" && t("payment.paid")}
+      {status === "unpaid" && t("payment.unpaid")}
+      {status === "partial" && t("payment.partial")}
     </span>
   );
 }

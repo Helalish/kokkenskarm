@@ -6,7 +6,7 @@ import type { StationConfig } from "@/types/station";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 import { sendOrderSms } from "@/services/sms-service";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
@@ -19,7 +19,7 @@ interface KanbanViewProps {
 export function KanbanView({ orders, activeStation }: KanbanViewProps) {
   const { stages } = usePipelineStore();
   const { sortOrder, smsEnabled } = useSettingsStore();
-  const { isMvpMode } = useMvpStore();
+  const { isFullMode } = useModeStore();
   const { advanceStage, dismissOrder } = useOrdersStore();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());

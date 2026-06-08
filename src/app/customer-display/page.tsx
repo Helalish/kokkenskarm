@@ -7,7 +7,9 @@ import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { generateInitialOrders, generateMockOrder } from "@/services/mock-data-service";
 import { playNewOrderSound } from "@/services/audio-service";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
+import { useT } from "@/hooks/use-t";
+import { LanguageToggle } from "@/components/language-toggle";
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -26,7 +28,8 @@ export default function CustomerDisplayPage() {
   const { orders, setOrders, addOrder } = useOrdersStore();
   const { stages, getFirstStageId } = usePipeline();
   const { soundEnabled } = useSettingsStore();
-  const { isMvpMode } = useMvpStore();
+  const { isFullMode } = useModeStore();
+  const t = useT();
   const [initialized, setInitialized] = useState(false);
   const [recentlyReady, setRecentlyReady] = useState<Set<string>>(new Set());
   const prevOrdersRef = useRef<Map<string, string>>(new Map());
@@ -88,10 +91,11 @@ export default function CustomerDisplayPage() {
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold text-shopbox-accent tracking-tight">Shopbox</h1>
-          <span className="text-sm text-shopbox-muted">Ordrestatus</span>
+          <span className="text-sm text-shopbox-muted">{t("customer.orderStatus")}</span>
         </div>
         <div className="flex items-center gap-4">
           <Clock />
+          <LanguageToggle />
           <Link
             href="/kds"
             className="text-[10px] text-white/20 hover:text-white/40 transition-colors"
@@ -110,7 +114,7 @@ export default function CustomerDisplayPage() {
             <div className="flex items-center gap-3">
               <div className="h-3 w-3 rounded-full bg-shopbox-warning animate-pulse" />
               <h2 className="text-xl font-bold text-white uppercase tracking-widest">
-                Tilberedes
+                {t("customer.preparing")}
               </h2>
             </div>
           </div>
@@ -125,7 +129,7 @@ export default function CustomerDisplayPage() {
                   <p className="text-5xl font-black text-white tracking-tight">
                     {order.orderNumber}
                   </p>
-                  {isMvpMode && order.customerInfo?.name && (
+                  {isFullMode && order.customerInfo?.name && (
                     <p className="text-base text-white/50 mt-2 truncate">
                       {order.customerInfo.name.split(" ")[0]}
                     </p>
@@ -135,7 +139,7 @@ export default function CustomerDisplayPage() {
             </div>
             {inProgressOrders.length === 0 && (
               <div className="flex items-center justify-center h-full">
-                <p className="text-white/30 text-lg">Ingen ordrer lige nu</p>
+                <p className="text-white/30 text-lg">{t("customer.preparingEmpty")}</p>
               </div>
             )}
           </div>
@@ -147,7 +151,7 @@ export default function CustomerDisplayPage() {
             <div className="flex items-center gap-3">
               <div className="h-3 w-3 rounded-full bg-shopbox-accent" />
               <h2 className="text-xl font-bold text-shopbox-accent uppercase tracking-widest">
-                Klar
+                {t("customer.ready")}
               </h2>
             </div>
           </div>
@@ -170,7 +174,7 @@ export default function CustomerDisplayPage() {
                     }`}>
                       {order.orderNumber}
                     </p>
-                    {isMvpMode && order.customerInfo?.name && (
+                    {isFullMode && order.customerInfo?.name && (
                       <p className={`text-base mt-2 truncate ${
                         isNew ? "text-shopbox-accent/70" : "text-white/50"
                       }`}>
@@ -183,7 +187,7 @@ export default function CustomerDisplayPage() {
             </div>
             {readyOrders.length === 0 && (
               <div className="flex items-center justify-center h-full">
-                <p className="text-white/20 text-lg">Ordrer vises her når de er klar</p>
+                <p className="text-white/20 text-lg">{t("customer.readyEmpty")}</p>
               </div>
             )}
           </div>

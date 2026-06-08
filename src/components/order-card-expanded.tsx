@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Order } from "@/types/order";
 import { useOrdersStore } from "@/stores/orders-store";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useT } from "@/hooks/use-t";
 import { useOrderTimer } from "@/hooks/use-order-timer";
+import { sendOrderSms } from "@/services/sms-service";
 import { SourceBadge } from "./source-badge";
 import { cn } from "@/lib/cn";
 
@@ -17,7 +19,8 @@ interface OrderCardExpandedProps {
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const { advanceStage, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
-  const { timerWarningSeconds, timerCriticalSeconds } = useSettingsStore();
+  const { timerWarningSeconds, timerCriticalSeconds, smsEnabled } = useSettingsStore();
+  const t = useT();
   const { formatted, status } = useOrderTimer(
     order.createdAt,
     timerWarningSeconds,
@@ -26,8 +29,14 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
 
   const currentStage = stages.find((s) => s.id === order.currentStageId);
   const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
+  const currentIndex = sortedStages.findIndex((s) => s.id === order.currentStageId);
+  const prevStageId = currentIndex > 0 ? sortedStages[currentIndex - 1].id : null;
+  const nextStageId = getNextStageId(order.currentStageId);
+  const nextStage = nextStageId ? stages.find((s) => s.id === nextStageId) : null;
+  const terminalStageId = sortedStages.length > 0 ? sortedStages[sortedStages.length - 1].id : null;
   const doneCount = order.items.filter((i) => i.isDone).length;
   const totalCount = order.items.length;
+  const [noteReviewed, setNoteReviewed] = useState(false);
 
   // Close on escape
   useEffect(() => {
@@ -38,15 +47,33 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const handleAdvance = useCallback(() => {
-    const nextStageId = getNextStageId(order.currentStageId);
-    if (nextStageId) {
-      advanceStage(order.id, nextStageId);
-    } else {
-      dismissOrder(order.id);
-      onClose();
-    }
-  }, [order.id, order.currentStageId, getNextStageId, advanceStage, dismissOrder, onClose]);
+  const sendStageSms = useCallback(
+    (stageId: string) => {
+      const stage = stages.find((s) => s.id === stageId);
+      if (smsEnabled && stage?.smsEnabled && stage.smsTemplate && order.customerInfo?.phone) {
+        const message = stage.smsTemplate.replace("#{orderNumber}", String(order.orderNumber));
+        sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
+      }
+    },
+    [stages, smsEnabled, order.customerInfo, order.orderNumber, order.id]
+  );
+
+  const handleMoveToStage = useCallback(
+    (stageId: string) => {
+      sendStageSms(stageId);
+      advanceStage(order.id, stageId);
+    },
+    [sendStageSms, advanceStage, order.id]
+  );
+
+  const handleMoveBack = useCallback(() => {
+    if (prevStageId) advanceStage(order.id, prevStageId);
+  }, [prevStageId, advanceStage, order.id]);
+
+  const handleRemove = useCallback(() => {
+    dismissOrder(order.id);
+    onClose();
+  }, [dismissOrder, order.id, onClose]);
 
   return (
     <div
@@ -54,30 +81,31 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
       onClick={onClose}
     >
       <div
-        className={cn(
-          "w-full max-w-lg rounded-2xl border overflow-hidden",
-          status === "normal" && "bg-shopbox-card border-shopbox-border",
-          status === "warning" && "bg-shopbox-card border-shopbox-warning/50",
-          status === "critical" && "bg-shopbox-card border-shopbox-critical/50"
-        )}
+        className="w-full max-w-lg rounded-3xl border bg-shopbox-card border-shopbox-border overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div
-          className="flex items-center justify-between px-5 py-3"
-          style={{ backgroundColor: currentStage?.color ? `${currentStage.color}22` : undefined }}
-        >
+        <div className="flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-bold">#{order.orderNumber}</span>
             <SourceBadge source={order.source} />
             {order.paymentStatus === "unpaid" && (
               <span className="rounded-md bg-shopbox-critical/20 px-2 py-0.5 text-xs font-bold text-shopbox-critical">
-                IKKE BETALT
+                {t("expanded.unpaid")}
               </span>
             )}
             {order.paymentStatus === "paid" && (
               <span className="rounded-md bg-shopbox-accent/20 px-2 py-0.5 text-xs font-bold text-shopbox-accent">
-                BETALT
+                {t("expanded.paid")}
+              </span>
+            )}
+            {/* Full status label (replaces the color dot used in the grid) */}
+            {currentStage && (
+              <span
+                className="rounded-md px-2 py-0.5 text-xs font-bold text-white"
+                style={{ backgroundColor: currentStage.color }}
+              >
+                {currentStage.name}
               </span>
             )}
           </div>
@@ -85,7 +113,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
             <span
               className={cn(
                 "font-mono text-lg font-bold tabular-nums",
-                status === "normal" && "text-shopbox-accent",
+                status === "normal" && "text-shopbox-text",
                 status === "warning" && "text-shopbox-warning",
                 status === "critical" && "text-shopbox-critical timer-pulse"
               )}
@@ -101,32 +129,10 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           </div>
         </div>
 
-        {/* Pipeline progress */}
-        <div className="flex items-center gap-1 px-5 py-2 overflow-x-auto">
-          {sortedStages.map((stage, i) => (
-            <div key={stage.id} className="flex items-center gap-1 shrink-0">
-              <div
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider",
-                  stage.id === order.currentStageId
-                    ? "text-white"
-                    : "opacity-40 text-white"
-                )}
-                style={{ backgroundColor: stage.color }}
-              >
-                {stage.name}
-              </div>
-              {i < sortedStages.length - 1 && (
-                <span className="text-shopbox-muted text-xs">→</span>
-              )}
-            </div>
-          ))}
-        </div>
-
         {/* Customer info */}
         {order.customerInfo && (
           <div className="mx-5 mb-2 rounded-lg bg-shopbox-surface p-3">
-            <p className="text-xs text-shopbox-muted mb-1">Kunde</p>
+            <p className="text-xs text-shopbox-muted mb-1">{t("expanded.customer")}</p>
             <p className="text-sm font-medium">{order.customerInfo.name}</p>
             {order.customerInfo.phone && (
               <p className="text-sm text-shopbox-text-secondary">{order.customerInfo.phone}</p>
@@ -137,25 +143,41 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           </div>
         )}
 
-        {/* Notes */}
+        {/* Note / allergy — can be checked off once staff have reviewed it */}
         {order.notes && (
-          <div className="mx-5 mb-2 rounded-lg bg-shopbox-warning/10 border border-shopbox-warning/30 p-3">
-            <p className="text-xs text-shopbox-warning font-semibold mb-0.5">Note</p>
-            <p className="text-sm">{order.notes}</p>
-          </div>
+          <button
+            onClick={() => setNoteReviewed((v) => !v)}
+            className="mx-5 mb-2 flex w-[calc(100%-2.5rem)] items-center gap-3 rounded-lg bg-shopbox-warning/10 border border-shopbox-warning/30 p-3 text-left transition-colors hover:bg-shopbox-warning/15"
+          >
+            <span
+              className={cn(
+                "h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors",
+                noteReviewed ? "border-shopbox-accent bg-shopbox-accent" : "border-shopbox-warning"
+              )}
+            >
+              {noteReviewed && (
+                <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </span>
+            <span className={cn("text-sm font-medium", noteReviewed ? "text-shopbox-muted line-through" : "text-shopbox-warning")}>
+              📝 {order.notes}
+            </span>
+          </button>
         )}
 
         {/* Items */}
         <div className="px-5 py-2 max-h-64 overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-shopbox-muted">
-              Varer ({doneCount}/{totalCount} færdig)
+              {t("expanded.items", { done: doneCount, total: totalCount })}
             </p>
             <button
               onClick={() => markAllItemsDone(order.id)}
               className="text-xs text-shopbox-accent hover:underline"
             >
-              Markér alle færdige
+              {t("expanded.markAllDone")}
             </button>
           </div>
           <div className="space-y-1">
@@ -196,17 +218,17 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
                   </div>
                   {item.variants.length > 0 && (
                     <p className="text-xs text-shopbox-text-secondary mt-0.5">
-                      Variant: {item.variants.join(", ")}
+                      {t("expanded.variant")}: {item.variants.join(", ")}
                     </p>
                   )}
                   {item.modifications.length > 0 && (
                     <p className="text-xs text-shopbox-warning mt-0.5">
-                      Mod: {item.modifications.join(", ")}
+                      {t("expanded.mod")}: {item.modifications.join(", ")}
                     </p>
                   )}
                   {item.ingredients.length > 0 && (
                     <p className="text-xs text-shopbox-text-secondary mt-0.5">
-                      Ingredienser: {item.ingredients.join(", ")}
+                      {t("expanded.ingredients")}: {item.ingredients.join(", ")}
                     </p>
                   )}
                 </div>
@@ -215,25 +237,40 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions — context-dependent: remove · back · advance/ready */}
         <div className="flex items-center gap-2 px-5 py-3 border-t border-shopbox-border/50">
           <button
-            onClick={handleAdvance}
-            className="flex-1 rounded-lg bg-shopbox-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-shopbox-accent/80 transition-colors"
+            onClick={handleRemove}
+            className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-critical hover:bg-shopbox-card-hover transition-colors"
           >
-            {getNextStageId(order.currentStageId)
-              ? `Flyt til: ${sortedStages.find((s) => s.id === getNextStageId(order.currentStageId))?.name ?? "Næste"}`
-              : "Færdig"}
+            ✕ {t("expanded.remove")}
           </button>
-          <button
-            onClick={() => {
-              dismissOrder(order.id);
-              onClose();
-            }}
-            className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
-          >
-            Fjern
-          </button>
+          <div className="flex items-center gap-2 ml-auto">
+            {prevStageId && (
+              <button
+                onClick={handleMoveBack}
+                className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
+              >
+                {nextStageId ? t("expanded.moveBack") : t("expanded.goBack")}
+              </button>
+            )}
+            {nextStageId && nextStageId !== terminalStageId && (
+              <button
+                onClick={() => handleMoveToStage(nextStageId)}
+                className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
+              >
+                {t("expanded.moveTo", { next: nextStage?.name ?? "" })}
+              </button>
+            )}
+            {nextStageId && terminalStageId && (
+              <button
+                onClick={() => handleMoveToStage(terminalStageId)}
+                className="rounded-lg bg-shopbox-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-shopbox-accent/80 transition-colors"
+              >
+                {sortedStages[sortedStages.length - 1]?.name}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

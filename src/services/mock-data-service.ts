@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
 import type { Order, OrderItem, OrderSource } from "@/types/order";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
+import { useLanguageStore } from "@/stores/language-store";
 
 const SOURCES: OrderSource[] = ["pos", "weorder", "kiosk", "qr"];
 
@@ -28,7 +29,7 @@ const CUSTOMER_NAMES = [
 ];
 
 // Comment-style notes shown in DEMO mode (POS staff + customer self-service).
-const DEMO_COMMENTS = [
+const DEMO_COMMENTS_DA = [
   "Uden løg",
   "Ekstra dressing ved siden af",
   "Bordnummer 7",
@@ -36,11 +37,21 @@ const DEMO_COMMENTS = [
   "Glutenfri bolle, tak",
 ];
 
+const DEMO_COMMENTS_EN = [
+  "No onions",
+  "Extra dressing on the side",
+  "Table number 7",
+  "Call on arrival",
+  "Gluten-free bun, please",
+];
+
 function generateNotes(): string | undefined {
-  if (useMvpStore.getState().isMvpMode) {
+  if (useModeStore.getState().isFullMode) {
     return Math.random() > 0.8 ? "Allergisk over for nødder" : undefined;
   }
-  return Math.random() < 0.4 ? randomItem(DEMO_COMMENTS) : undefined;
+  const lang = useLanguageStore.getState().language;
+  const pool = lang === "en" ? DEMO_COMMENTS_EN : DEMO_COMMENTS_DA;
+  return Math.random() < 0.4 ? randomItem(pool) : undefined;
 }
 
 function randomItem<T>(arr: T[]): T {

@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
 import type { StationConfig } from "@/types/station";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
 import { usePipeline } from "@/hooks/use-pipeline";
+import { useT } from "@/hooks/use-t";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
 
@@ -16,10 +17,11 @@ interface OrderGridProps {
 
 export function OrderGrid({ orders, activeStation }: OrderGridProps) {
   const { gridColumns, sortOrder } = useSettingsStore();
-  const isMvpMode = useMvpStore((s) => s.isMvpMode);
+  const isFullMode = useModeStore((s) => s.isFullMode);
   const { stages } = usePipeline();
+  const t = useT();
   // DEMO mode is locked to a 4-column grid.
-  const effectiveGridColumns = isMvpMode ? gridColumns : 4;
+  const effectiveGridColumns = isFullMode ? gridColumns : 4;
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
@@ -88,7 +90,13 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
   const sortedOrders = [...orders].sort((a, b) => {
     const timeA = new Date(a.createdAt).getTime();
     const timeB = new Date(b.createdAt).getTime();
-    return sortOrder === "oldest" ? timeA - timeB : timeB - timeA;
+    if (timeA !== timeB) {
+      return sortOrder === "oldest" ? timeA - timeB : timeB - timeA;
+    }
+    // Tie-break on order number, following the selected sort direction.
+    return sortOrder === "oldest"
+      ? a.orderNumber - b.orderNumber
+      : b.orderNumber - a.orderNumber;
   });
 
   const currentExpanded = expandedOrder
@@ -99,8 +107,8 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
     return (
       <div className="flex-1 flex items-center justify-center text-shopbox-muted">
         <div className="text-center">
-          <p className="text-2xl mb-2">Ingen aktive ordrer</p>
-          <p className="text-sm">Nye ordrer vises automatisk her</p>
+          <p className="text-2xl mb-2">{t("grid.empty.title")}</p>
+          <p className="text-sm">{t("grid.empty.subtitle")}</p>
         </div>
       </div>
     );

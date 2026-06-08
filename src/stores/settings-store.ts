@@ -44,7 +44,6 @@ export const useSettingsStore = create<SettingsState>()(
       showItemCheckmarks: true,
       autoAdvanceWhenAllDone: false,
       scrollableCards: false,
-      showPipelineBar: true,
       autoDismissReadySeconds: 0,
       smsEnabled: true,
 

@@ -9,7 +9,6 @@ interface CustomerInfoProps {
 export function CustomerInfo({ info }: CustomerInfoProps) {
   return (
     <div className="flex items-center gap-1.5 text-xs text-shopbox-text-secondary">
-      <span className="text-shopbox-muted">👤</span>
       <span className="truncate">{info.name}</span>
       {info.phone && (
         <>

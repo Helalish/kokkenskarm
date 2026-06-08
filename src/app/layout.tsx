@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { MvpToggle } from "@/components/mvp-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -34,7 +34,7 @@ export default function RootLayout({
       <body className="min-h-full bg-shopbox-surface text-shopbox-text font-[family-name:var(--font-lexend)] antialiased">
         <ThemeProvider>
           {children}
-          <MvpToggle />
+          <ModeToggle />
         </ThemeProvider>
       </body>
     </html>

@@ -87,7 +87,7 @@ export function SummaryView({ orders, activeStation }: SummaryViewProps) {
           <span className="text-sm text-shopbox-text-secondary">varer i alt</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-3xl font-bold text-shopbox-accent">{totalDone}</span>
+          <span className="text-3xl font-bold text-shopbox-text">{totalDone}</span>
           <span className="text-sm text-shopbox-text-secondary">færdige</span>
         </div>
       </div>
@@ -136,7 +136,7 @@ export function SummaryView({ orders, activeStation }: SummaryViewProps) {
                       </div>
                       <div className="flex items-center gap-2 ml-3">
                         {!allDone && (
-                          <span className="text-lg font-bold text-shopbox-accent">
+                          <span className="text-lg font-bold text-shopbox-text">
                             {remaining}
                           </span>
                         )}

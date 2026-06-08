@@ -18,10 +18,10 @@ export const DEMO_STAGES: PipelineStage[] = [
 ];
 
 export function getEffectiveStages(
-  isMvpMode: boolean,
+  isFullMode: boolean,
   storeStages: PipelineStage[]
 ): PipelineStage[] {
-  return isMvpMode ? storeStages : DEMO_STAGES;
+  return isFullMode ? storeStages : DEMO_STAGES;
 }
 
 export function getNextStageId(

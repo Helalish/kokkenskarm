@@ -13,7 +13,8 @@ import { SourceBadge } from "./source-badge";
 import { PaymentBadge } from "./payment-badge";
 import { CustomerInfo } from "./customer-info";
 import { sendOrderSms } from "@/services/sms-service";
-import { useMvpStore } from "@/stores/mvp-store";
+import { useModeStore } from "@/stores/mode-store";
+import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
 interface OrderCardProps {
@@ -39,9 +40,10 @@ export function OrderCard({
   onKanbanClick,
   onKanbanBack,
 }: OrderCardProps) {
-  const { advanceStage, dismissOrder, toggleItemDone } = useOrdersStore();
+  const { advanceStage, dismissOrder, toggleItemDone, acknowledgeChanges } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
-  const { isMvpMode } = useMvpStore();
+  const { isFullMode } = useModeStore();
+  const t = useT();
   const {
     timerWarningSeconds,
     timerCriticalSeconds,
@@ -57,7 +59,7 @@ export function OrderCard({
   );
 
   // DEMO mode never scrolls inside order cards.
-  const effectiveScrollableCards = isMvpMode ? scrollableCards : false;
+  const effectiveScrollableCards = isFullMode ? scrollableCards : false;
 
   const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
   const currentStage = stages.find((s) => s.id === order.currentStageId);
@@ -111,25 +113,18 @@ export function OrderCard({
   return (
     <div
       className={cn(
-        "no-select order-card-enter relative flex flex-col rounded-2xl border transition-all",
+        // Card fill, border and typography stay constant — they do NOT change
+        // based on order status, duration or any other order attribute.
+        "no-select order-card-enter relative flex flex-col rounded-3xl border bg-shopbox-card border-shopbox-border transition-all",
         order.isRefunded ? "cursor-default" : "cursor-pointer",
         !order.isRefunded && "hover:border-shopbox-accent/50 hover:shadow-lg hover:shadow-shopbox-accent/10",
-        order.hasChanges && !order.isRefunded && "border-red-500/70",
-        order.isRefunded && "border-red-600/80",
-        !order.hasChanges && status === "normal" && "bg-shopbox-card border-shopbox-border",
-        !order.hasChanges && status === "warning" && "bg-shopbox-card border-shopbox-warning/50",
-        !order.hasChanges && status === "critical" && "bg-shopbox-card border-shopbox-critical/50",
-        order.hasChanges && "bg-shopbox-card",
         isSelected && !order.isRefunded && "ring-2 ring-shopbox-accent border-shopbox-accent",
         isNew && "order-new-glow"
       )}
       onClick={order.isRefunded ? undefined : handleClick}
     >
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-3 py-2 rounded-t-2xl"
-        style={{ backgroundColor: currentStage?.color ? `${currentStage.color}22` : undefined }}
-      >
+      <div className="flex items-center justify-between px-3 py-2 rounded-t-3xl">
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold">#{order.orderNumber}</span>
           <SourceBadge source={order.source} />
@@ -139,7 +134,7 @@ export function OrderCard({
           <span
             className={cn(
               "font-mono text-sm font-semibold tabular-nums",
-              status === "normal" && "text-shopbox-accent",
+              status === "normal" && "text-shopbox-text",
               status === "warning" && "text-shopbox-warning",
               status === "critical" && "text-shopbox-critical timer-pulse"
             )}
@@ -152,7 +147,7 @@ export function OrderCard({
               onExpand?.();
             }}
             className="rounded-lg p-1 text-shopbox-muted hover:text-shopbox-text hover:bg-white/10 transition-colors"
-            title="Vis detaljer"
+            title={t("card.showDetails")}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
@@ -161,29 +156,41 @@ export function OrderCard({
         </div>
       </div>
 
-      {/* Changes badge */}
+      {/* Changes banner — can be checked off / dismissed once reviewed */}
       {order.hasChanges && !order.isRefunded && (
-        <div className="px-3 py-1.5 bg-red-500/15 text-xs text-red-400 font-bold text-center animate-pulse">
-          Ændringer i bestilling
+        <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-shopbox-warning/15">
+          <span className="text-xs font-bold uppercase tracking-wider text-shopbox-detail">
+            {t("card.changes")}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              acknowledgeChanges(order.id);
+            }}
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 border-shopbox-muted text-transparent hover:border-shopbox-text hover:text-shopbox-text transition-colors"
+            title="Markér ændringer som set"
+          >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
         </div>
       )}
 
       {/* Selected action hint (grid only) */}
       {viewMode !== "kanban" && isSelected && !order.isRefunded && (
         <div className="px-3 py-1.5 bg-shopbox-accent/10 text-xs text-shopbox-accent font-medium text-center">
-          Klik igen → {nextStage ? nextStage.name : "Færdig"}
+          {t("card.clickAgain", { next: nextStage ? nextStage.name : t("card.done") })}
         </div>
       )}
 
-      {/* Stage badge (grid only) + customer info */}
-      <div className="px-3 py-1 flex items-center justify-between gap-2">
+      {/* Status dot (grid only) + customer info */}
+      <div className="px-3 py-1 flex items-center gap-2">
         {viewMode !== "kanban" && currentStage && (
           <span
-            className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider shrink-0"
-            style={{ backgroundColor: currentStage.color, color: "#fff" }}
-          >
-            {currentStage.name}
-          </span>
+            className="h-2.5 w-2.5 rounded-full shrink-0"
+            style={{ backgroundColor: currentStage.color }}
+          />
         )}
         {order.customerInfo && (
           <div className="min-w-0 flex-1">
@@ -235,19 +242,19 @@ export function OrderCard({
                   </span>
                   {isAdded && (
                     <span className="rounded bg-green-500/20 px-1 py-0.5 text-[9px] font-bold text-green-500 uppercase tracking-wider">
-                      NY
+                      {t("card.new")}
                     </span>
                   )}
                   {item.changeStatus === "refunded" && (
                     <span className="rounded bg-red-500/20 px-1 py-0.5 text-[9px] font-bold text-red-500 uppercase tracking-wider">
-                      Refunderet
+                      {t("card.refunded")}
                     </span>
                   )}
                 </div>
                 {item.variants.length > 0 && (
                   <p className={cn(
                     "text-xs mt-0.5",
-                    isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-text-secondary"
+                    isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-detail"
                   )}>
                     {item.variants.join(", ")}
                   </p>
@@ -267,7 +274,7 @@ export function OrderCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-3 py-2 border-t border-shopbox-border/50 text-xs text-shopbox-text-secondary">
+      <div className="flex items-center justify-between px-3 py-2 border-t border-shopbox-border/50 text-xs text-shopbox-detail">
         <div className="flex items-center gap-1.5">
           {viewMode === "kanban" && onKanbanBack ? (
             <button
@@ -277,7 +284,7 @@ export function OrderCard({
               }}
               className="rounded-md bg-shopbox-surface px-2 py-1 text-xs font-medium text-shopbox-text-secondary hover:text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
             >
-              ← Tilbage
+              {t("card.back")}
             </button>
           ) : viewMode === "grid" && prevStageId ? (
             <button
@@ -287,16 +294,18 @@ export function OrderCard({
               }}
               className="rounded-md bg-shopbox-surface px-2 py-1 text-xs font-medium text-shopbox-text-secondary hover:text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
             >
-              ← Tilbage
+              {t("card.back")}
             </button>
           ) : null}
-          <span>
-            {showItemCheckmarks ? `${doneCount}/${totalCount} færdig` : `${totalCount} varer`}
+          <span className={cn(showItemCheckmarks && allDone && "text-shopbox-accent font-semibold")}>
+            {showItemCheckmarks
+              ? t("card.itemsDone", { done: doneCount, total: totalCount })
+              : t("card.itemsCount", { total: totalCount })}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-auto">
           {order.notes && (
-            <span className="text-shopbox-warning truncate" title={order.notes}>
+            <span className="text-shopbox-detail italic truncate" title={order.notes}>
               📝 {order.notes}
             </span>
           )}
@@ -311,7 +320,7 @@ export function OrderCard({
                 sendOrderSms(order.customerInfo!.phone!, order.orderNumber, order.id, message);
               }}
               className="rounded-md bg-shopbox-accent/10 px-2 py-1 text-[10px] font-medium text-shopbox-accent hover:bg-shopbox-accent/20 transition-colors"
-              title={`Send SMS til ${order.customerInfo.phone}`}
+              title={t("card.sendSms", { phone: order.customerInfo!.phone! })}
             >
               {(order.smsSentCount ?? 0) > 0 ? `SMS (${order.smsSentCount})` : "SMS"}
             </button>
@@ -321,10 +330,10 @@ export function OrderCard({
 
       {/* Refunded/deleted order overlay */}
       {order.isRefunded && (
-        <div className="absolute inset-0 rounded-2xl bg-red-950/80 flex flex-col items-center justify-center z-10">
+        <div className="absolute inset-0 rounded-3xl bg-red-950/80 flex flex-col items-center justify-center z-10">
           <span className="text-6xl font-black text-red-500">✕</span>
           <span className="text-sm font-bold text-red-400 mt-2 uppercase tracking-widest">
-            Slettet — lav ikke
+            {t("card.deleted")}
           </span>
         </div>
       )}

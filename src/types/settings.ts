@@ -24,7 +24,6 @@ export interface DisplaySettings {
   showItemCheckmarks: boolean;
   autoAdvanceWhenAllDone: boolean;
   scrollableCards: boolean;
-  showPipelineBar: boolean;
   autoDismissReadySeconds: number;
   smsEnabled: boolean;
 }

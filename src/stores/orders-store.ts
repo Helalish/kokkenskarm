@@ -13,6 +13,7 @@ interface OrdersState {
   completeOrder: (orderId: string) => void;
   toggleItemDone: (orderId: string, itemId: string) => void;
   markAllItemsDone: (orderId: string) => void;
+  acknowledgeChanges: (orderId: string) => void;
   dismissOrder: (orderId: string) => void;
   undoDismiss: () => Order | null;
   setOrders: (orders: Order[]) => void;
@@ -77,6 +78,14 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
               items: o.items.map((item) => ({ ...item, isDone: true })),
             }
           : o
+      ),
+    }));
+  },
+
+  acknowledgeChanges: (orderId) => {
+    set((state) => ({
+      orders: state.orders.map((o) =>
+        o.id === orderId ? { ...o, hasChanges: false } : o
       ),
     }));
   },
