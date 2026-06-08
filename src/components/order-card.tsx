@@ -117,7 +117,6 @@ export function OrderCard({
         // based on order status, duration or any other order attribute.
         "no-select order-card-enter relative flex flex-col rounded-3xl border bg-shopbox-card border-shopbox-border transition-all",
         order.isRefunded ? "cursor-default" : "cursor-pointer",
-        !order.isRefunded && "hover:border-shopbox-accent/50 hover:shadow-lg hover:shadow-shopbox-accent/10",
         isSelected && !order.isRefunded && "ring-2 ring-shopbox-accent border-shopbox-accent",
         isNew && "order-new-glow"
       )}
