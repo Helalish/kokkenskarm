@@ -24,7 +24,7 @@ export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) 
         className={cn(
           "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
           activeStageId === null
-            ? "bg-shopbox-accent text-white"
+            ? "bg-white/10 text-white"
             : "text-shopbox-text-secondary hover:bg-shopbox-card"
         )}
         onClick={() => onStageSelect(null)}
