@@ -46,16 +46,7 @@ export function KdsHeader() {
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-shopbox-primary border-b border-shopbox-border">
       <div className="flex items-center gap-3">
-        <h1 className="text-lg font-bold text-shopbox-accent">Shopbox KDS</h1>
-        <span
-          className="rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider"
-          style={{
-            backgroundColor: isFullMode ? "rgba(34, 197, 94, 0.15)" : "rgba(249, 115, 22, 0.15)",
-            color: isFullMode ? "#22C55E" : "#F97316",
-          }}
-        >
-          {isFullMode ? "Full feature" : "MVP"}
-        </span>
+        <h1 className="text-lg font-bold text-shopbox-text">Shopbox KDS</h1>
 
         {/* Station selector (MVP only) */}
         {isFullMode && stations.length > 0 && (
