@@ -227,7 +227,7 @@ export function OrderCard({
                   {item.quantity > 1 && (
                     <span className={cn(
                       "font-bold",
-                      isRemoved ? "text-red-500" : isAdded ? "text-green-500" : "text-shopbox-accent"
+                      isRemoved ? "text-red-500" : isAdded ? "text-shopbox-accent" : "text-shopbox-accent"
                     )}>
                       {item.quantity}x
                     </span>
@@ -235,12 +235,12 @@ export function OrderCard({
                   <span className={cn(
                     "font-medium",
                     isRemoved && "line-through text-red-500 font-bold",
-                    isAdded && "text-green-500"
+                    isAdded && "text-shopbox-accent"
                   )}>
                     {item.name}
                   </span>
                   {isAdded && (
-                    <span className="rounded bg-green-500/20 px-1 py-0.5 text-[9px] font-bold text-green-500 uppercase tracking-wider">
+                    <span className="rounded bg-shopbox-accent/20 px-1 py-0.5 text-[9px] font-bold text-shopbox-accent uppercase tracking-wider">
                       {t("card.new")}
                     </span>
                   )}
@@ -253,7 +253,7 @@ export function OrderCard({
                 {item.variants.length > 0 && (
                   <p className={cn(
                     "text-xs mt-0.5",
-                    isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-detail"
+                    isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-shopbox-accent/70" : "text-shopbox-detail"
                   )}>
                     {item.variants.join(", ")}
                   </p>
@@ -261,7 +261,7 @@ export function OrderCard({
                 {item.modifications.length > 0 && (
                   <p className={cn(
                     "text-xs mt-0.5",
-                    isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-warning"
+                    isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-shopbox-accent/70" : "text-shopbox-warning"
                   )}>
                     {item.modifications.join(", ")}
                   </p>

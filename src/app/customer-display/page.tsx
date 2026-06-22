@@ -90,7 +90,7 @@ export default function CustomerDisplayPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-shopbox-accent tracking-tight">Shopbox</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Shopbox</h1>
           <span className="text-sm text-shopbox-muted">{t("customer.orderStatus")}</span>
         </div>
         <div className="flex items-center gap-4">
@@ -165,7 +165,7 @@ export default function CustomerDisplayPage() {
                     key={order.id}
                     className={`rounded-2xl border p-6 text-center transition-all duration-500 ${
                       isNew
-                        ? "bg-shopbox-accent/20 border-shopbox-accent scale-105 shadow-[0_0_30px_rgba(34,197,94,0.3)]"
+                        ? "bg-shopbox-accent/20 border-shopbox-accent scale-105 shadow-[0_0_30px_rgba(0,174,102,0.3)]"
                         : "bg-shopbox-accent/10 border-shopbox-accent/30"
                     }`}
                   >

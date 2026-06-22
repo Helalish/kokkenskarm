@@ -43,7 +43,7 @@ export function SmsLogPanel({ onClose }: SmsLogPanelProps) {
                 <div key={entry.id} className="px-5 py-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full ${entry.success ? "bg-green-500" : "bg-red-500"}`} />
+                      <span className={`h-2 w-2 rounded-full ${entry.success ? "bg-shopbox-accent" : "bg-red-500"}`} />
                       <span className="text-sm font-semibold text-shopbox-text">
                         Ordre #{entry.orderNumber}
                       </span>
