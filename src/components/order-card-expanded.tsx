@@ -18,7 +18,7 @@ interface OrderCardExpandedProps {
 }
 
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
-  const { advanceStage, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
+  const { updateOrderStatus, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
   const { timerWarningSeconds, timerCriticalSeconds, smsEnabled } = useSettingsStore();
   const t = useT();
@@ -62,14 +62,14 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const handleMoveToStage = useCallback(
     (stageId: string) => {
       sendStageSms(stageId);
-      advanceStage(order.id, stageId);
+      updateOrderStatus(order.id, stageId);
     },
-    [sendStageSms, advanceStage, order.id]
+    [sendStageSms, updateOrderStatus, order.id]
   );
 
   const handleMoveBack = useCallback(() => {
-    if (prevStageId) advanceStage(order.id, prevStageId);
-  }, [prevStageId, advanceStage, order.id]);
+    if (prevStageId) updateOrderStatus(order.id, prevStageId);
+  }, [prevStageId, updateOrderStatus, order.id]);
 
   const handleRemove = useCallback(() => {
     dismissOrder(order.id);

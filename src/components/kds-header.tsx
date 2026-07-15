@@ -6,7 +6,6 @@ import { useOrdersStore } from "@/stores/orders-store";
 import { useStationStore } from "@/stores/station-store";
 import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
 import { useSmsLogStore } from "@/stores/sms-log-store";
 import { SmsLogPanel } from "./sms-log-panel";
 import { LanguageToggle } from "./language-toggle";
@@ -18,7 +17,6 @@ export function KdsHeader() {
   const { stations, activeStationId, setActiveStation } = useStationStore();
   const { preOrders } = usePreOrdersStore();
   const { sortOrder, soundEnabled, viewMode, updateSettings } = useSettingsStore();
-  const { isFullMode } = useModeStore();
   const { entries } = useSmsLogStore();
   const [showSmsLog, setShowSmsLog] = useState(false);
   const smsWrapperRef = useRef<HTMLDivElement>(null);
@@ -48,8 +46,7 @@ export function KdsHeader() {
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-bold text-shopbox-text">Shopbox KDS</h1>
 
-        {/* Station selector (MVP only) */}
-        {isFullMode && stations.length > 0 && (
+        {stations.length > 0 && (
           <div className="flex items-center gap-1 ml-2">
             <button
               className={cn(
@@ -81,9 +78,7 @@ export function KdsHeader() {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* View mode toggle (MVP only — DEMO is grid only) */}
-        {isFullMode && (
-          <button
+        <button
             className="rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
             onClick={() =>
               updateSettings({
@@ -96,7 +91,6 @@ export function KdsHeader() {
           >
             {viewMode === "grid" ? "▥ Gitter" : viewMode === "kanban" ? "▤ Kanban" : "Σ Sammendrag"}
           </button>
-        )}
 
         {/* Sort toggle */}
         <button
@@ -137,15 +131,12 @@ export function KdsHeader() {
           {showSmsLog && <SmsLogPanel onClose={() => setShowSmsLog(false)} />}
         </div>
 
-        {/* Pre-orders (MVP only) */}
-        {isFullMode && (
-          <Link
-            href="/pre-orders"
-            className="rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
-          >
-            Forudbestillinger ({preOrders.length})
-          </Link>
-        )}
+        <Link
+          href="/pre-orders"
+          className="rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
+        >
+          Forudbestillinger ({preOrders.length})
+        </Link>
 
         {/* Undo */}
         {dismissedOrders.length > 0 && (
@@ -173,7 +164,7 @@ export function KdsHeader() {
           {t("header.settings")}
         </Link>
 
-        {/* Language toggle (DEMO only) */}
+        {/* Language toggle */}
         <LanguageToggle />
       </div>
     </header>

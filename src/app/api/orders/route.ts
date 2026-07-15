@@ -1,33 +1,31 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { SHOPBOX_CONFIG } from "@/lib/shopbox-config";
 import { transformShopboxOrders } from "@/services/shopbox-transformer";
 
-const SHOPBOX_API_URL = process.env.SHOPBOX_API_URL;
-const SHOPBOX_API_KEY = process.env.SHOPBOX_API_KEY;
+export async function GET(request: NextRequest) {
+  const { baseUrl, branchId, accessToken, clientId } = SHOPBOX_CONFIG;
 
-export async function GET() {
-  if (!SHOPBOX_API_URL || !SHOPBOX_API_KEY) {
-    return NextResponse.json(
-      { error: "Shopbox API not configured. Set SHOPBOX_API_URL and SHOPBOX_API_KEY in .env.local" },
-      { status: 503 }
-    );
+  const url = new URL(`${baseUrl}/branches/${branchId}/kds/orders`);
+  url.searchParams.set("accessToken", accessToken);
+  url.searchParams.set("client", clientId);
+
+  const status = request.nextUrl.searchParams.get("status");
+  if (status) {
+    url.searchParams.set("status", status);
   }
 
   try {
-    const response = await fetch(`${SHOPBOX_API_URL}/orders`, {
-      headers: {
-        Authorization: `Bearer ${SHOPBOX_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      // Don't cache — we need fresh orders
+    const response = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
       cache: "no-store",
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Shopbox API error:", errorText);
+      console.error("Shopbox KDS API error:", response.status, errorText);
       return NextResponse.json(
         { error: "Failed to fetch orders from Shopbox" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -39,7 +37,7 @@ export async function GET() {
     console.error("Orders API error:", error);
     return NextResponse.json(
       { error: "Internal error fetching orders" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

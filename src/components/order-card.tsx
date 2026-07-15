@@ -13,7 +13,6 @@ import { SourceBadge } from "./source-badge";
 import { PaymentBadge } from "./payment-badge";
 import { CustomerInfo } from "./customer-info";
 import { sendOrderSms } from "@/services/sms-service";
-import { useModeStore } from "@/stores/mode-store";
 import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
@@ -40,9 +39,8 @@ export function OrderCard({
   onKanbanClick,
   onKanbanBack,
 }: OrderCardProps) {
-  const { advanceStage, dismissOrder, toggleItemDone, acknowledgeChanges } = useOrdersStore();
+  const { updateOrderStatus, dismissOrder, toggleItemDone, acknowledgeChanges } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
-  const { isFullMode } = useModeStore();
   const t = useT();
   const {
     timerWarningSeconds,
@@ -58,8 +56,7 @@ export function OrderCard({
     timerCriticalSeconds
   );
 
-  // DEMO mode never scrolls inside order cards.
-  const effectiveScrollableCards = isFullMode ? scrollableCards : false;
+  const effectiveScrollableCards = scrollableCards;
 
   const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
   const currentStage = stages.find((s) => s.id === order.currentStageId);
@@ -86,12 +83,11 @@ export function OrderCard({
     if (autoAdvanceWhenAllDone && showItemCheckmarks && allDone && !prevAllDoneRef.current) {
       if (nextStageId) {
         triggerAutoSms();
-        advanceStage(order.id, nextStageId);
+        updateOrderStatus(order.id, nextStageId);
       }
-      // No dismiss here — orders in terminal stage stay until auto-dismiss timer or manual action
     }
     prevAllDoneRef.current = allDone;
-  }, [allDone, autoAdvanceWhenAllDone, showItemCheckmarks, nextStageId, order.id, advanceStage, triggerAutoSms]);
+  }, [allDone, autoAdvanceWhenAllDone, showItemCheckmarks, nextStageId, order.id, updateOrderStatus, triggerAutoSms]);
 
   const handleClick = useCallback(() => {
     if (viewMode === "kanban") {
@@ -101,14 +97,14 @@ export function OrderCard({
     if (isSelected) {
       if (nextStageId) {
         triggerAutoSms();
-        advanceStage(order.id, nextStageId);
+        updateOrderStatus(order.id, nextStageId);
       } else {
-        dismissOrder(order.id);
+        updateOrderStatus(order.id, "done");
       }
     } else {
       onSelect?.();
     }
-  }, [viewMode, isSelected, nextStageId, order.id, advanceStage, dismissOrder, onSelect, onKanbanClick, triggerAutoSms]);
+  }, [viewMode, isSelected, nextStageId, order.id, updateOrderStatus, onSelect, onKanbanClick, triggerAutoSms]);
 
   return (
     <div
@@ -289,7 +285,7 @@ export function OrderCard({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                advanceStage(order.id, prevStageId);
+                updateOrderStatus(order.id, prevStageId);
               }}
               className="rounded-md bg-shopbox-surface px-2 py-1 text-xs font-medium text-shopbox-text-secondary hover:text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
             >

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useOrdersStore } from "@/stores/orders-store";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
-import { generateInitialOrders, generateMockOrder } from "@/services/mock-data-service";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -46,35 +45,12 @@ function OrderNumberTile({
 }
 
 export default function CustomerDisplayPage() {
-  const { orders, setOrders, addOrder } = useOrdersStore();
-  const { stages, getFirstStageId } = usePipeline();
+  const { orders } = useOrdersStore();
+  const { stages } = usePipeline();
   const { soundEnabled } = useSettingsStore();
   const t = useT();
   const [recentlyReady, setRecentlyReady] = useState<Set<string>>(new Set());
   const prevOrdersRef = useRef<Map<string, string>>(new Map());
-  const hasSeededRef = useRef(false);
-
-  // Load initial mock orders if none exist
-  useEffect(() => {
-    if (hasSeededRef.current || stages.length === 0) return;
-    const firstStageId = getFirstStageId();
-    if (!firstStageId) return;
-
-    hasSeededRef.current = true;
-    if (orders.length === 0) {
-      setOrders(generateInitialOrders(firstStageId, 8));
-    }
-  }, [stages.length, orders.length, getFirstStageId, setOrders]);
-
-  // Simulate new orders arriving
-  useEffect(() => {
-    if (stages.length === 0) return;
-    const interval = setInterval(() => {
-      const firstStageId = getFirstStageId();
-      if (firstStageId) addOrder(generateMockOrder(firstStageId));
-    }, 15000 + Math.random() * 15000);
-    return () => clearInterval(interval);
-  }, [stages.length, getFirstStageId, addOrder]);
 
   // Track which orders just moved to "ready" for animation
   useEffect(() => {

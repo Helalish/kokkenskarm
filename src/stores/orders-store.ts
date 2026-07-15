@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 import type { Order } from "@/types/order";
+import { isKdsStageId, type KdsApiStatus } from "@/types/pipeline";
+import { useToastStore } from "@/stores/toast-store";
 
 interface OrdersState {
   orders: Order[];
@@ -18,6 +20,7 @@ interface OrdersState {
   undoDismiss: () => Order | null;
   setOrders: (orders: Order[]) => void;
   incrementSmsSent: (orderId: string) => void;
+  updateOrderStatus: (orderId: string, nextStageId: string) => Promise<boolean>;
 }
 
 export const useOrdersStore = create<OrdersState>()((set, get) => ({
@@ -120,5 +123,71 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
           : o
       ),
     }));
+  },
+
+  updateOrderStatus: async (orderId, nextStageId) => {
+    const order = get().orders.find((o) => o.id === orderId);
+    if (!order) return false;
+
+    const previousStageId = order.currentStageId;
+    // Stage IDs mirror API status values. "done" dismisses; unknown/custom
+    // stage IDs also become "done" since the API has nothing else to map them to.
+    const isDone = nextStageId === "done" || !isKdsStageId(nextStageId);
+    const status: KdsApiStatus = isDone ? "done" : nextStageId;
+
+    // Optimistic update
+    if (isDone) {
+      get().dismissOrder(orderId);
+    } else {
+      set((state) => ({
+        orders: state.orders.map((o) =>
+          o.id === orderId
+            ? { ...o, currentStageId: nextStageId, stageEnteredAt: new Date().toISOString() }
+            : o
+        ),
+      }));
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          order_type: order.orderType ?? "takeaway",
+          status,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Status ${response.status}`);
+      }
+
+      return true;
+    } catch {
+      // Rollback on failure
+      if (isDone) {
+        set((state) => ({
+          orders: [...state.orders, { ...order, currentStageId: previousStageId }],
+          dismissedOrders: state.dismissedOrders.filter((o) => o.id !== orderId),
+        }));
+      } else {
+        set((state) => ({
+          orders: state.orders.map((o) =>
+            o.id === orderId
+              ? { ...o, currentStageId: previousStageId }
+              : o
+          ),
+        }));
+      }
+
+      useToastStore.getState().addToast({
+        type: "info",
+        message: "Failed to update order status",
+        detail: "The change has been reverted. Please try again.",
+        duration: 4000,
+      });
+
+      return false;
+    }
   },
 }));

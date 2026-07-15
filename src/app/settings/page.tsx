@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
-import { DEMO_STAGES } from "@/lib/demo-pipeline";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
 
 export default function SettingsPage() {
   const settings = useSettingsStore();
-  const isFullMode = useModeStore((s) => s.isFullMode);
   const t = useT();
 
   return (
@@ -28,8 +25,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Display (Full feature only) */}
-        {isFullMode && (
+        {/* Display */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("settings.display")}</h2>
 
@@ -109,7 +105,6 @@ export default function SettingsPage() {
             </label>
           </div>
         </section>
-        )}
 
         {/* Timer thresholds */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
@@ -169,7 +164,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Ordre-flow */}
+        {/* Order flow */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("settings.orderFlow")}</h2>
           <div className="space-y-4">
@@ -206,7 +201,6 @@ export default function SettingsPage() {
         </section>
 
         {/* Sound */}
-        {isFullMode && (
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">Lyd</h2>
           <label className="flex items-center gap-3 cursor-pointer">
@@ -219,7 +213,6 @@ export default function SettingsPage() {
             <span className="text-sm">Afspil lyd ved nye ordrer</span>
           </label>
         </section>
-        )}
 
         {/* SMS */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
@@ -234,32 +227,13 @@ export default function SettingsPage() {
             <div>
               <span className="text-sm font-medium">{t("settings.sms.enable")}</span>
               <p className="text-xs text-shopbox-muted mt-0.5">
-                {isFullMode
-                  ? "Vis SMS-knap på ordrekort og send automatisk SMS når ordrer skifter stadie. Konfigurér beskeder per stadie under Pipeline-stadier."
-                  : t("settings.sms.helperDemo")}
+                {t("settings.sms.helperDemo")}
               </p>
             </div>
           </label>
-          {!isFullMode && (
-            <div className="mt-4">
-              <label className="block text-sm text-shopbox-text-secondary mb-1">
-                {t("settings.sms.previewLabel")}
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={DEMO_STAGES[2].smsTemplate ?? ""}
-                className="w-full rounded-lg bg-shopbox-surface border border-shopbox-border px-3 py-2 text-sm text-shopbox-text-secondary cursor-default outline-none"
-              />
-              <p className="text-xs text-shopbox-muted mt-1">
-                {t("settings.sms.previewNote")}
-              </p>
-            </div>
-          )}
         </section>
 
-        {/* Links to sub-settings */}
-        {isFullMode && (
+        {/* Configuration links */}
         <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">Konfiguration</h2>
           <div className="space-y-2">
@@ -283,7 +257,6 @@ export default function SettingsPage() {
             </Link>
           </div>
         </section>
-        )}
       </div>
     </div>
   );

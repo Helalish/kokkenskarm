@@ -1,62 +1,75 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipelineStore } from "@/stores/pipeline-store";
 import type { Order } from "@/types/order";
 
-const POLL_INTERVAL = 8000; // 8 seconds
+const POLL_INTERVAL = 8000;
 
-export function useOrderPolling(enabled: boolean) {
-  const { orders, addOrder, setOrders } = useOrdersStore();
-  const { getFirstStageId } = usePipelineStore();
-  const knownOrderIdsRef = useRef<Set<string>>(new Set());
-  const dismissedIdsRef = useRef<Set<string>>(new Set());
+export function useOrderPolling() {
+  const setOrders = useOrdersStore((s) => s.setOrders);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
+  const activeRef = useRef(false);
 
-  // Track dismissed orders to avoid re-adding them
-  const { dismissedOrders } = useOrdersStore();
-  useEffect(() => {
-    dismissedIdsRef.current = new Set(dismissedOrders.map((o) => o.id));
-  }, [dismissedOrders]);
+  const fetchOrders = useCallback(async () => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    if (!activeRef.current) return;
 
-  // Track known orders
-  useEffect(() => {
-    knownOrderIdsRef.current = new Set(orders.map((o) => o.id));
-  }, [orders]);
+    const requestId = ++requestIdRef.current;
 
-  useEffect(() => {
-    if (!enabled) return;
+    try {
+      const response = await fetch("/api/orders");
 
-    async function pollOrders() {
-      try {
-        const response = await fetch("/api/orders");
-        if (!response.ok) return;
+      if (requestId !== requestIdRef.current || !activeRef.current) return;
 
-        const data = await response.json();
-        const fetchedOrders: Order[] = data.orders ?? [];
-        const firstStageId = getFirstStageId();
+      if (!response.ok) {
+        setError("Failed to fetch orders");
+        return;
+      }
 
-        for (const order of fetchedOrders) {
-          // Skip dismissed and already-known orders
-          if (dismissedIdsRef.current.has(order.id)) continue;
-          if (knownOrderIdsRef.current.has(order.id)) continue;
+      const data = await response.json();
+      if (requestId !== requestIdRef.current || !activeRef.current) return;
 
-          // Assign to first pipeline stage if not set
-          if (!order.currentStageId && firstStageId) {
-            order.currentStageId = firstStageId;
-          }
-
-          addOrder(order);
-        }
-      } catch (error) {
-        console.error("Order polling error:", error);
+      setOrders((data.orders ?? []) as Order[]);
+      setError(null);
+    } catch (err) {
+      if (requestId !== requestIdRef.current || !activeRef.current) return;
+      setError("Network error");
+      console.error("Order polling error:", err);
+    } finally {
+      if (requestId === requestIdRef.current && activeRef.current) {
+        setIsLoading(false);
       }
     }
+  }, [setOrders]);
 
-    // Initial fetch
-    pollOrders();
+  useEffect(() => {
+    activeRef.current = true;
 
-    const interval = setInterval(pollOrders, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [enabled, getFirstStageId, addOrder]);
+    // Defer the first fetch so React Strict Mode's mount → cleanup → remount
+    // cycle clears this timeout and only the second mount fires a request.
+    // No AbortController → no cancelled request in the Network tab.
+    const initialTimer = window.setTimeout(() => {
+      fetchOrders();
+    }, 0);
+
+    const interval = setInterval(fetchOrders, POLL_INTERVAL);
+
+    const handleVisibility = () => {
+      if (!document.hidden) fetchOrders();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      activeRef.current = false;
+      requestIdRef.current += 1;
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [fetchOrders]);
+
+  return { isLoading, error, refetch: fetchOrders };
 }

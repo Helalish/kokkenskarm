@@ -2,17 +2,9 @@
 
 import { useEffect } from "react";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
 
-/**
- * Syncs Zustand theme colors + text scale to CSS custom properties on :root.
- * This makes all Tailwind classes using var(--shopbox-*) update in realtime.
- */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { theme, textScale } = useSettingsStore();
-  const isFullMode = useModeStore((s) => s.isFullMode);
-  // DEMO mode is locked to 100% text size.
-  const effectiveTextScale = isFullMode ? textScale : 1;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -30,11 +22,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   useEffect(() => {
-    document.documentElement.style.fontSize = `${effectiveTextScale * 100}%`;
+    document.documentElement.style.fontSize = `${textScale * 100}%`;
     return () => {
       document.documentElement.style.fontSize = "";
     };
-  }, [effectiveTextScale]);
+  }, [textScale]);
 
   return <>{children}</>;
 }

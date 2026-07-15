@@ -1,28 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
-import { useModeStore } from "@/stores/mode-store";
 import { usePipelineStore } from "@/stores/pipeline-store";
-import {
-  getEffectiveStages,
-  getNextStageId,
-  getFirstStageId,
-} from "@/lib/demo-pipeline";
 
-// Facade over pipeline-store: returns the fixed DEMO stages in DEMO mode and
-// the user-configurable store stages in MVP mode. Drop-in for the
-// `usePipelineStore()` destructure in stage-consuming components.
 export function usePipeline() {
-  const isFullMode = useModeStore((s) => s.isFullMode);
-  const storeStages = usePipelineStore((s) => s.stages);
-  const stages = getEffectiveStages(isFullMode, storeStages);
+  const stages = usePipelineStore((s) => s.stages);
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    const sorted = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
+    return {
       stages,
-      getNextStageId: (id: string) => getNextStageId(stages, id),
-      getFirstStageId: () => getFirstStageId(stages),
-    }),
-    [stages]
-  );
+      getNextStageId: (id: string) => {
+        const i = sorted.findIndex((s) => s.id === id);
+        if (i === -1 || i >= sorted.length - 1) return null;
+        return sorted[i + 1].id;
+      },
+      getFirstStageId: () => (sorted.length > 0 ? sorted[0].id : null),
+    };
+  }, [stages]);
 }

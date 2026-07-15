@@ -38,4 +38,5 @@ export interface Order {
   stageEnteredAt?: string;
   smsSentCount?: number;
   lastSmsSentAt?: string;
+  orderType?: string;
 }

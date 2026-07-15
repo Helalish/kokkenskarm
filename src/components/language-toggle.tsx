@@ -1,16 +1,11 @@
 "use client";
 
-import { useModeStore } from "@/stores/mode-store";
 import { useLanguageStore, type Language } from "@/stores/language-store";
 import { cn } from "@/lib/cn";
 
-// DA/EN segmented toggle. Only rendered in DEMO mode; MVP mode is Danish-only.
 export function LanguageToggle({ className }: { className?: string }) {
-  const isFullMode = useModeStore((s) => s.isFullMode);
   const language = useLanguageStore((s) => s.language);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
-
-  if (isFullMode) return null;
 
   return (
     <div
@@ -19,7 +14,7 @@ export function LanguageToggle({ className }: { className?: string }) {
         className
       )}
     >
-      {(["da", "en"] as const satisfies readonly Language[]).map((l) => (
+      {(["en", "da"] as const satisfies readonly Language[]).map((l) => (
         <button
           key={l}
           onClick={() => setLanguage(l)}

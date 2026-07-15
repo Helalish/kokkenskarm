@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/mode-toggle";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -31,10 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="da" className={`${lexend.variable} h-full`}>
-      <body className="min-h-full bg-shopbox-surface text-shopbox-text font-[family-name:var(--font-lexend)] antialiased">
+      <body className="min-h-full bg-shopbox-surface text-shopbox-text font-(family-name:--font-lexend) antialiased">
         <ThemeProvider>
           {children}
-          <ModeToggle />
         </ThemeProvider>
       </body>
     </html>

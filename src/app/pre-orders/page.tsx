@@ -4,33 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipelineStore } from "@/stores/pipeline-store";
-import { generateInitialPreOrders } from "@/services/mock-data-service";
-import { useModeStore } from "@/stores/mode-store";
 import { PreOrderCard } from "@/components/pre-order-card";
 import { OrderCardExpanded } from "@/components/order-card-expanded";
 import type { Order } from "@/types/order";
 
 export default function PreOrdersPage() {
-  const { preOrders, setPreOrders, removePreOrder, promoteMinutesBefore, setPromoteMinutesBefore } =
+  const { preOrders, removePreOrder, promoteMinutesBefore, setPromoteMinutesBefore } =
     usePreOrdersStore();
   const { addOrder } = useOrdersStore();
-  const { getFirstStageId, stages } = usePipelineStore();
-  const { isFullMode } = useModeStore();
-  const [initialized, setInitialized] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
-
-  // Load initial mock pre-orders
-  useEffect(() => {
-    if (initialized || stages.length === 0) return;
-    const firstStageId = getFirstStageId();
-    if (!firstStageId) return;
-
-    if (preOrders.length === 0) {
-      setPreOrders(generateInitialPreOrders(firstStageId, 4));
-    }
-    setInitialized(true);
-  }, [stages.length, initialized, preOrders.length, getFirstStageId, setPreOrders]);
 
   // Auto-promote pre-orders that are within the threshold
   useEffect(() => {

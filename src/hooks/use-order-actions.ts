@@ -7,12 +7,8 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { sendOrderSms } from "@/services/sms-service";
 import type { Order } from "@/types/order";
 
-/**
- * Wraps advanceStage with per-stage SMS logic.
- * When an order moves to a stage with smsEnabled, sends SMS using that stage's template.
- */
 export function useOrderActions() {
-  const { advanceStage, dismissOrder } = useOrdersStore();
+  const { updateOrderStatus } = useOrdersStore();
   const { stages, getNextStageId } = usePipelineStore();
   const { smsEnabled } = useSettingsStore();
 
@@ -21,7 +17,7 @@ export function useOrderActions() {
       const nextStageId = getNextStageId(order.currentStageId);
       if (!nextStageId) return;
 
-      advanceStage(order.id, nextStageId);
+      updateOrderStatus(order.id, nextStageId);
 
       const nextStage = stages.find((s) => s.id === nextStageId);
       if (
@@ -37,7 +33,7 @@ export function useOrderActions() {
         sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
       }
     },
-    [advanceStage, getNextStageId, stages, smsEnabled]
+    [updateOrderStatus, getNextStageId, stages, smsEnabled]
   );
 
   const sendSmsManually = useCallback(
@@ -52,5 +48,5 @@ export function useOrderActions() {
     []
   );
 
-  return { advanceWithSms, sendSmsManually, dismissOrder };
+  return { advanceWithSms, sendSmsManually };
 }

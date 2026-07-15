@@ -6,7 +6,6 @@ import type { StationConfig } from "@/types/station";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
 import { sendOrderSms } from "@/services/sms-service";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
@@ -19,8 +18,7 @@ interface KanbanViewProps {
 export function KanbanView({ orders, activeStation }: KanbanViewProps) {
   const { stages } = usePipelineStore();
   const { sortOrder, smsEnabled } = useSettingsStore();
-  const { isFullMode } = useModeStore();
-  const { advanceStage, dismissOrder } = useOrdersStore();
+  const { updateOrderStatus } = useOrdersStore();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
 
@@ -55,9 +53,8 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
       const idx = sortedStages.findIndex((s) => s.id === order.currentStageId);
       if (idx < sortedStages.length - 1) {
         const nextStage = sortedStages[idx + 1];
-        advanceStage(order.id, nextStage.id);
+        updateOrderStatus(order.id, nextStage.id);
 
-        // Per-stage auto-SMS
         if (
           smsEnabled &&
           nextStage.smsEnabled &&
@@ -68,20 +65,20 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
           sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
         }
       } else {
-        dismissOrder(order.id);
+        updateOrderStatus(order.id, "done");
       }
     },
-    [sortedStages, advanceStage, dismissOrder, smsEnabled]
+    [sortedStages, updateOrderStatus, smsEnabled]
   );
 
   const handleKanbanBack = useCallback(
     (order: Order) => {
       const idx = sortedStages.findIndex((s) => s.id === order.currentStageId);
       if (idx > 0) {
-        advanceStage(order.id, sortedStages[idx - 1].id);
+        updateOrderStatus(order.id, sortedStages[idx - 1].id);
       }
     },
-    [sortedStages, advanceStage]
+    [sortedStages, updateOrderStatus]
   );
 
   const sortFn = (a: Order, b: Order) => {
