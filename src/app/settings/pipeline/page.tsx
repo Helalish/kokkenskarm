@@ -6,8 +6,8 @@ import { usePipelineStore } from "@/stores/pipeline-store";
 import { cn } from "@/lib/cn";
 
 const PRESET_COLORS = [
-  "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899",
-  "#F59E0B", "#EF4444", "#10B981", "#06B6D4",
+  "#6792F4", "#F79009", "#00AE66", "#6366F1",
+  "#8B5CF6", "#EC4899", "#EF4444", "#06B6D4",
 ];
 
 export default function PipelineSettingsPage() {

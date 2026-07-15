@@ -115,7 +115,7 @@ export function OrderCard({
       className={cn(
         // Card fill, border and typography stay constant — they do NOT change
         // based on order status, duration or any other order attribute.
-        "no-select order-card-enter relative flex flex-col rounded-3xl border bg-shopbox-card border-shopbox-border transition-all",
+        "no-select order-card-enter relative flex flex-col rounded-3xl border border-sb-border-tertiary bg-shopbox-card transition-all",
         order.isRefunded ? "cursor-default" : "cursor-pointer",
         isSelected && !order.isRefunded && "ring-2 ring-shopbox-accent border-shopbox-accent",
         isNew && "order-new-glow"
@@ -123,7 +123,7 @@ export function OrderCard({
       onClick={order.isRefunded ? undefined : handleClick}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 rounded-t-3xl">
+      <div className="flex items-center justify-between px-3 py-2 rounded-t-3xl bg-shopbox-card-header">
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold">#{order.orderNumber}</span>
           <SourceBadge source={order.source} />
@@ -273,7 +273,7 @@ export function OrderCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-3 py-2 border-t border-shopbox-border/50 text-xs text-shopbox-detail">
+      <div className="flex items-center justify-between px-3 py-2 border-t border-sb-border-tertiary text-xs text-shopbox-detail">
         <div className="flex items-center gap-1.5">
           {viewMode === "kanban" && onKanbanBack ? (
             <button

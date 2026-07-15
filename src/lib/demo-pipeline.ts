@@ -4,13 +4,13 @@ import type { PipelineStage } from "@/types/pipeline";
 // Same stage IDs as the default MVP pipeline so order.currentStageId works
 // across a mode toggle.
 export const DEMO_STAGES: PipelineStage[] = [
-  { id: "stage-1", name: "Incoming", sortOrder: 0, color: "#3B82F6", isTerminal: false },
-  { id: "stage-2", name: "In Progress", sortOrder: 1, color: "#F59E0B", isTerminal: false },
+  { id: "stage-1", name: "Incoming", sortOrder: 0, color: "#6792F4", isTerminal: false },
+  { id: "stage-2", name: "In Progress", sortOrder: 1, color: "#F79009", isTerminal: false },
   {
     id: "stage-3",
     name: "Ready for Pick up",
     sortOrder: 2,
-    color: "#10B981",
+    color: "#00AE66",
     isTerminal: true,
     smsEnabled: true,
     smsTemplate: "Din ordre #{orderNumber} er klar til afhentning!",

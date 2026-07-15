@@ -9,6 +9,7 @@ import { useT } from "@/hooks/use-t";
 import { useOrderTimer } from "@/hooks/use-order-timer";
 import { sendOrderSms } from "@/services/sms-service";
 import { SourceBadge } from "./source-badge";
+import { CustomerInfo } from "./customer-info";
 import { cn } from "@/lib/cn";
 
 interface OrderCardExpandedProps {
@@ -81,11 +82,11 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-3xl border bg-shopbox-card border-shopbox-border overflow-hidden"
+        className="w-full max-w-lg rounded-3xl border border-sb-border-tertiary bg-shopbox-card overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3">
+        <div className="flex items-center justify-between px-5 py-3 bg-shopbox-card-header">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-bold">#{order.orderNumber}</span>
             <SourceBadge source={order.source} />
@@ -122,7 +123,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
             </span>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-shopbox-muted hover:text-shopbox-text hover:bg-shopbox-surface transition-colors"
+              className="cursor-pointer rounded-lg p-1.5 text-shopbox-muted hover:text-shopbox-text hover:bg-white/10 transition-colors"
             >
               ✕
             </button>
@@ -131,15 +132,12 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
 
         {/* Customer info */}
         {order.customerInfo && (
-          <div className="mx-5 mb-2 rounded-lg bg-shopbox-surface p-3">
-            <p className="text-xs text-shopbox-muted mb-1">{t("expanded.customer")}</p>
-            <p className="text-sm font-medium">{order.customerInfo.name}</p>
-            {order.customerInfo.phone && (
-              <p className="text-sm text-shopbox-text-secondary">{order.customerInfo.phone}</p>
-            )}
-            {order.customerInfo.email && (
-              <p className="text-sm text-shopbox-text-secondary">{order.customerInfo.email}</p>
-            )}
+          <div className="px-5 py-2">
+            <CustomerInfo
+              info={order.customerInfo}
+              spaced
+              className="text-sm text-white"
+            />
           </div>
         )}
 
@@ -238,39 +236,37 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
         </div>
 
         {/* Actions — context-dependent: remove · back · advance/ready */}
-        <div className="flex items-center gap-2 px-5 py-3 border-t border-shopbox-border/50">
+        <div className="flex items-center gap-4 border-t border-sb-border-tertiary px-6 py-3.5">
           <button
             onClick={handleRemove}
-            className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-critical hover:bg-shopbox-card-hover transition-colors"
+            className="flex h-[52px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#F04438] bg-[#F04438]/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-[#F04438]/20"
           >
             ✕ {t("expanded.remove")}
           </button>
-          <div className="flex items-center gap-2 ml-auto">
-            {prevStageId && (
-              <button
-                onClick={handleMoveBack}
-                className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
-              >
-                {nextStageId ? t("expanded.moveBack") : t("expanded.goBack")}
-              </button>
-            )}
-            {nextStageId && nextStageId !== terminalStageId && (
-              <button
-                onClick={() => handleMoveToStage(nextStageId)}
-                className="rounded-lg bg-shopbox-surface px-4 py-2.5 text-sm font-medium text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
-              >
-                {t("expanded.moveTo", { next: nextStage?.name ?? "" })}
-              </button>
-            )}
-            {nextStageId && terminalStageId && (
-              <button
-                onClick={() => handleMoveToStage(terminalStageId)}
-                className="rounded-lg bg-shopbox-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-shopbox-accent/80 transition-colors"
-              >
-                {sortedStages[sortedStages.length - 1]?.name}
-              </button>
-            )}
-          </div>
+          {prevStageId && (
+            <button
+              onClick={handleMoveBack}
+              className="flex h-[52px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
+            >
+              {nextStageId ? t("expanded.moveBack") : t("expanded.goBack")}
+            </button>
+          )}
+          {nextStageId && nextStageId !== terminalStageId && (
+            <button
+              onClick={() => handleMoveToStage(nextStageId)}
+              className="flex h-[52px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
+            >
+              {t("expanded.moveTo", { next: nextStage?.name ?? "" })}
+            </button>
+          )}
+          {nextStageId && terminalStageId && (
+            <button
+              onClick={() => handleMoveToStage(terminalStageId)}
+              className="flex h-[52px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-[#00AE66] bg-[#00AE66] px-4 text-sm font-semibold leading-snug text-[#F0FDF6] transition-colors hover:bg-[#00AE66]/90"
+            >
+              {sortedStages[sortedStages.length - 1]?.name}
+            </button>
+          )}
         </div>
       </div>
     </div>

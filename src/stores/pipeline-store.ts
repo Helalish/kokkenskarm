@@ -11,6 +11,18 @@ function recalcTerminal(stages: PipelineStage[]): PipelineStage[] {
   return stages.map((s) => ({ ...s, isTerminal: s.id === lastId }));
 }
 
+const DEFAULT_STAGES: PipelineStage[] = [
+  { id: "stage-1", name: "Modtaget", sortOrder: 0, color: "#6792F4", isTerminal: false },
+  { id: "stage-2", name: "I gang", sortOrder: 1, color: "#F79009", isTerminal: false, smsEnabled: true, smsTemplate: "Vi er begyndt på din ordre #{orderNumber}!" },
+  { id: "stage-3", name: "Klar", sortOrder: 2, color: "#00AE66", isTerminal: true, smsEnabled: true, smsTemplate: "Din ordre #{orderNumber} er klar til afhentning!" },
+];
+
+const STAGE_COLORS: Record<string, string> = {
+  "stage-1": "#6792F4",
+  "stage-2": "#F79009",
+  "stage-3": "#00AE66",
+};
+
 interface PipelineState {
   stages: PipelineStage[];
   addStage: (name: string, color: string) => void;
@@ -24,11 +36,7 @@ interface PipelineState {
 export const usePipelineStore = create<PipelineState>()(
   persist(
     (set, get) => ({
-      stages: [
-        { id: "stage-1", name: "Modtaget", sortOrder: 0, color: "#3B82F6", isTerminal: false },
-        { id: "stage-2", name: "I gang", sortOrder: 1, color: "#F59E0B", isTerminal: false, smsEnabled: true, smsTemplate: "Vi er begyndt på din ordre #{orderNumber}!" },
-        { id: "stage-3", name: "Klar", sortOrder: 2, color: "#10B981", isTerminal: true, smsEnabled: true, smsTemplate: "Din ordre #{orderNumber} er klar til afhentning!" },
-      ],
+      stages: DEFAULT_STAGES,
 
       addStage: (name, color) => {
         const stages = get().stages;
@@ -78,14 +86,18 @@ export const usePipelineStore = create<PipelineState>()(
     }),
     {
       name: "kds-pipeline",
-      version: 4,
-      migrate: () => ({
-        stages: [
-          { id: "stage-1", name: "Modtaget", sortOrder: 0, color: "#3B82F6", isTerminal: false },
-          { id: "stage-2", name: "I gang", sortOrder: 1, color: "#F59E0B", isTerminal: false, smsEnabled: true, smsTemplate: "Vi er begyndt på din ordre #{orderNumber}!" },
-          { id: "stage-3", name: "Klar", sortOrder: 2, color: "#10B981", isTerminal: true, smsEnabled: true, smsTemplate: "Din ordre #{orderNumber} er klar til afhentning!" },
-        ],
-      }),
+      version: 5,
+      migrate: (persistedState) => {
+        const state = persistedState as { stages?: PipelineStage[] } | undefined;
+        if (!state?.stages?.length) {
+          return { stages: DEFAULT_STAGES };
+        }
+        return {
+          stages: state.stages.map((stage) =>
+            STAGE_COLORS[stage.id] ? { ...stage, color: STAGE_COLORS[stage.id] } : stage
+          ),
+        };
+      },
     }
   )
 );

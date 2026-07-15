@@ -6,8 +6,10 @@
   --shopbox-light: #E7F5F1;
   --shopbox-surface: #000000;
   --shopbox-card: #1A1A1A;
+  --shopbox-card-header: #1F2838;
   --shopbox-card-hover: #252525;
   --shopbox-border: #333333;
+  --sb-border-tertiary: #98A2B3;
   --shopbox-warning: #F59E0B;
   --shopbox-critical: #EF4444;
   --shopbox-muted: #707070;
@@ -27,8 +29,10 @@
   --color-shopbox-light: var(--shopbox-light);
   --color-shopbox-surface: var(--shopbox-surface);
   --color-shopbox-card: var(--shopbox-card);
+  --color-shopbox-card-header: var(--shopbox-card-header);
   --color-shopbox-card-hover: var(--shopbox-card-hover);
   --color-shopbox-border: var(--shopbox-border);
+  --color-sb-border-tertiary: var(--sb-border-tertiary);
   --color-shopbox-warning: var(--shopbox-warning);
   --color-shopbox-critical: var(--shopbox-critical);
   --color-shopbox-muted: var(--shopbox-muted);
