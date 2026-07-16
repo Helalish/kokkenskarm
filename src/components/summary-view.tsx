@@ -3,6 +3,7 @@
 import type { Order } from "@/types/order";
 import type { StationConfig } from "@/types/station";
 import { getStationItems } from "@/lib/category-filter";
+import { useT } from "@/hooks/use-t";
 
 interface SummaryItem {
   name: string;
@@ -59,6 +60,7 @@ interface SummaryViewProps {
 }
 
 export function SummaryView({ orders, activeStation }: SummaryViewProps) {
+  const t = useT();
   const aggregated = aggregateItems(orders, activeStation);
   const allItems = Array.from(aggregated.values()).sort((a, b) => b.totalQty - a.totalQty);
   const categories = groupByCategory(allItems);
@@ -69,7 +71,7 @@ export function SummaryView({ orders, activeStation }: SummaryViewProps) {
   if (orders.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-shopbox-muted">
-        <p className="text-lg">Ingen aktive ordrer</p>
+        <p className="text-lg">{t("summary.empty")}</p>
       </div>
     );
   }
@@ -80,15 +82,15 @@ export function SummaryView({ orders, activeStation }: SummaryViewProps) {
       <div className="flex items-center gap-6 mb-6 px-2">
         <div className="flex items-center gap-2">
           <span className="text-3xl font-bold text-shopbox-text">{orders.length}</span>
-          <span className="text-sm text-shopbox-text-secondary">ordrer</span>
+          <span className="text-sm text-shopbox-text-secondary">{t("summary.orders")}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-3xl font-bold text-shopbox-text">{totalItems}</span>
-          <span className="text-sm text-shopbox-text-secondary">varer i alt</span>
+          <span className="text-sm text-shopbox-text-secondary">{t("summary.itemsTotal")}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-3xl font-bold text-shopbox-text">{totalDone}</span>
-          <span className="text-sm text-shopbox-text-secondary">færdige</span>
+          <span className="text-sm text-shopbox-text-secondary">{t("summary.done")}</span>
         </div>
       </div>
 
@@ -142,7 +144,7 @@ export function SummaryView({ orders, activeStation }: SummaryViewProps) {
                         )}
                         {item.doneQty > 0 && (
                           <span className="text-xs text-shopbox-muted">
-                            {allDone ? "Klar" : `${item.doneQty} klar`}
+                            {allDone ? t("summary.ready") : t("summary.readyCount", { count: item.doneQty })}
                           </span>
                         )}
                         {allDone && (

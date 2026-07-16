@@ -7,6 +7,7 @@ import { usePipelineStore } from "@/stores/pipeline-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { sendOrderSms } from "@/services/sms-service";
+import { useT } from "@/hooks/use-t";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
 
@@ -19,6 +20,7 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
   const { stages } = usePipelineStore();
   const { sortOrder, smsEnabled } = useSettingsStore();
   const { updateOrderStatus } = useOrdersStore();
+  const t = useT();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
 
@@ -95,8 +97,8 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
     return (
       <div className="flex-1 flex items-center justify-center text-shopbox-muted">
         <div className="text-center">
-          <p className="text-2xl mb-2">Ingen aktive ordrer</p>
-          <p className="text-sm">Nye ordrer vises automatisk her</p>
+          <p className="text-2xl mb-2">{t("grid.empty.title")}</p>
+          <p className="text-sm">{t("grid.empty.subtitle")}</p>
         </div>
       </div>
     );

@@ -32,7 +32,7 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                Antal kolonner: {settings.gridColumns}
+                {t("settings.columns", { count: settings.gridColumns })}
               </label>
               <input
                 type="range"
@@ -49,7 +49,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                Tekststørrelse: {(settings.textScale * 100).toFixed(0)}%
+                {t("settings.textScale", { percent: (settings.textScale * 100).toFixed(0) })}
               </label>
               <input
                 type="range"
@@ -63,7 +63,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                Sortering
+                {t("settings.sorting")}
               </label>
               <div className="flex gap-2">
                 <button
@@ -74,7 +74,7 @@ export default function SettingsPage() {
                   }`}
                   onClick={() => settings.updateSettings({ sortOrder: "oldest" })}
                 >
-                  Ældste først
+                  {t("header.sort.oldestTitle")}
                 </button>
                 <button
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
@@ -84,7 +84,7 @@ export default function SettingsPage() {
                   }`}
                   onClick={() => settings.updateSettings({ sortOrder: "newest" })}
                 >
-                  Nyeste først
+                  {t("header.sort.newestTitle")}
                 </button>
               </div>
             </div>
@@ -97,9 +97,9 @@ export default function SettingsPage() {
                 className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
               />
               <div>
-                <span className="text-sm font-medium">Scroll i ordre-bokse</span>
+                <span className="text-sm font-medium">{t("settings.scrollableCards")}</span>
                 <p className="text-xs text-shopbox-muted mt-0.5">
-                  Begræns boksens højde og tilføj scroll. Slå fra for at vise hele ordren uden scroll.
+                  {t("settings.scrollableCards.helper")}
                 </p>
               </div>
             </label>
@@ -202,7 +202,7 @@ export default function SettingsPage() {
 
         {/* Sound */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Lyd</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("settings.sound")}</h2>
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -210,7 +210,7 @@ export default function SettingsPage() {
               onChange={(e) => settings.updateSettings({ soundEnabled: e.target.checked })}
               className="h-5 w-5 rounded accent-shopbox-accent"
             />
-            <span className="text-sm">Afspil lyd ved nye ordrer</span>
+            <span className="text-sm">{t("settings.sound.enable")}</span>
           </label>
         </section>
 
@@ -235,25 +235,25 @@ export default function SettingsPage() {
 
         {/* Configuration links */}
         <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Konfiguration</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("settings.configuration")}</h2>
           <div className="space-y-2">
             <Link
               href="/settings/pipeline"
               className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
             >
-              Pipeline-stadier →
+              {t("settings.pipeline")}
             </Link>
             <Link
               href="/settings/stations"
               className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
             >
-              Stationer →
+              {t("settings.stations")}
             </Link>
             <Link
               href="/settings/design"
               className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
             >
-              Design & Farver →
+              {t("settings.design")}
             </Link>
           </div>
         </section>

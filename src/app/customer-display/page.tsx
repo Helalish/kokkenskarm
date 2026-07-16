@@ -15,9 +15,11 @@ function Clock() {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+  const h = time.getHours().toString().padStart(2, "0");
+  const m = time.getMinutes().toString().padStart(2, "0");
   return (
     <span className="text-shopbox-text-secondary font-medium tabular-nums">
-      {time.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+      {`${h}:${m}`}
     </span>
   );
 }
@@ -33,7 +35,7 @@ function OrderNumberTile({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-3 text-center sm:p-5 order-card-enter ${className ?? ""}`}
+      className={`w-fit rounded-2xl border p-3 text-center sm:p-5 order-card-enter ${className ?? ""}`}
     >
       <p
         className={`font-black tracking-tight tabular-nums leading-none whitespace-nowrap text-[clamp(1.75rem,5vw,3rem)] ${numberClassName ?? ""}`}
@@ -100,7 +102,7 @@ export default function CustomerDisplayPage() {
             href="/kds"
             className="text-[10px] text-white/20 hover:text-white/40 transition-colors"
           >
-            KDS
+            {t("customer.kdsLink")}
           </Link>
         </div>
       </div>
@@ -108,7 +110,7 @@ export default function CustomerDisplayPage() {
       {/* Main content — two columns */}
       <div className="flex-1 flex overflow-hidden">
 
-        {/* Under tilberedning */}
+        {/* Preparing */}
         <div className="flex-1 flex flex-col border-r border-white/10">
           <div className="px-8 py-5">
             <div className="flex items-center gap-3">
@@ -120,7 +122,7 @@ export default function CustomerDisplayPage() {
           </div>
 
           <div className="flex-1 overflow-auto px-4 pb-6 sm:px-8 sm:pb-8">
-            <div className="grid gap-3 sm:gap-4 grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))]">
+            <div className="flex flex-wrap items-start gap-3 sm:gap-4">
               {inProgressOrders.map((order) => (
                 <OrderNumberTile
                   key={order.id}
@@ -138,7 +140,7 @@ export default function CustomerDisplayPage() {
           </div>
         </div>
 
-        {/* Klar til afhentning */}
+        {/* Ready for pickup */}
         <div className="flex-1 flex flex-col bg-shopbox-accent/5">
           <div className="px-8 py-5">
             <div className="flex items-center gap-3">
@@ -150,7 +152,7 @@ export default function CustomerDisplayPage() {
           </div>
 
           <div className="flex-1 overflow-auto px-4 pb-6 sm:px-8 sm:pb-8">
-            <div className="grid gap-3 sm:gap-4 grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))]">
+            <div className="flex flex-wrap items-start gap-3 sm:gap-4">
               {readyOrders.map((order) => {
                 const isNew = recentlyReady.has(order.id);
                 return (

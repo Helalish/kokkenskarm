@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import { cn } from "@/lib/cn";
+import { useT } from "@/hooks/use-t";
 
 const PRESET_COLORS = [
   "#6792F4", "#F79009", "#00AE66", "#6366F1",
@@ -11,6 +12,7 @@ const PRESET_COLORS = [
 ];
 
 export default function PipelineSettingsPage() {
+  const t = useT();
   const { stages, addStage, removeStage, updateStage, reorderStages } = usePipelineStore();
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
@@ -41,24 +43,24 @@ export default function PipelineSettingsPage() {
     <div className="min-h-screen bg-shopbox-surface p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-shopbox-text">Pipeline-stadier</h1>
+          <h1 className="text-2xl font-bold text-shopbox-text">{t("pipeline.title")}</h1>
           <Link
             href="/settings"
             className="rounded-lg bg-shopbox-accent px-4 py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 transition-colors"
           >
-            ← Tilbage
+            {t("pipeline.back")}
           </Link>
         </div>
 
         {/* Existing stages */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">
-            Aktive stadier ({sortedStages.length})
+            {t("pipeline.active", { count: sortedStages.length })}
           </h2>
 
           {sortedStages.length === 0 ? (
             <p className="text-shopbox-muted text-sm">
-              Ingen stadier oprettet endnu. Tilføj stadier nedenfor.
+              {t("pipeline.empty")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -99,7 +101,7 @@ export default function PipelineSettingsPage() {
                         onChange={(e) => updateStage(stage.id, { smsEnabled: e.target.checked })}
                         className="accent-shopbox-accent"
                       />
-                      SMS
+                      {t("pipeline.sms")}
                     </label>
                     <button
                       onClick={() => removeStage(stage.id)}
@@ -114,11 +116,11 @@ export default function PipelineSettingsPage() {
                         rows={3}
                         value={stage.smsTemplate ?? ""}
                         onChange={(e) => updateStage(stage.id, { smsTemplate: e.target.value })}
-                        placeholder="SMS-besked, f.eks. Din ordre #{orderNumber} er klar!"
+                        placeholder={t("pipeline.smsPlaceholder")}
                         className="w-full rounded-lg bg-shopbox-card border border-shopbox-border px-3 py-2 text-sm text-shopbox-text outline-none focus:border-shopbox-accent resize-y"
                       />
                       <p className="text-[10px] text-shopbox-muted mt-0.5">
-                        {"#{orderNumber}"} erstattes med ordrenummer
+                        {t("pipeline.smsHelp")}
                       </p>
                     </div>
                   )}
@@ -130,7 +132,7 @@ export default function PipelineSettingsPage() {
 
         {/* Add new stage */}
         <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Tilføj nyt stadie</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("pipeline.addTitle")}</h2>
 
           <div className="space-y-4">
             <input
@@ -138,12 +140,12 @@ export default function PipelineSettingsPage() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder="Stadie-navn (f.eks. 'I gang')"
+              placeholder={t("pipeline.namePlaceholder")}
               className="w-full rounded-lg bg-shopbox-surface border border-shopbox-border px-4 py-2 text-sm text-shopbox-text placeholder:text-shopbox-muted outline-none focus:border-shopbox-accent"
             />
 
             <div>
-              <label className="block text-sm text-shopbox-text-secondary mb-2">Farve</label>
+              <label className="block text-sm text-shopbox-text-secondary mb-2">{t("pipeline.color")}</label>
               <div className="flex gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
@@ -164,7 +166,7 @@ export default function PipelineSettingsPage() {
               disabled={!newName.trim()}
               className="rounded-lg bg-shopbox-accent px-4 py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 disabled:opacity-50 transition-colors"
             >
-              Tilføj stadie
+              {t("pipeline.add")}
             </button>
           </div>
         </section>
@@ -172,7 +174,7 @@ export default function PipelineSettingsPage() {
         {/* Visual pipeline preview */}
         {sortedStages.length > 0 && (
           <section className="mt-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-            <h2 className="text-lg font-semibold mb-4">Pipeline-flow</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("pipeline.flow")}</h2>
             <div className="flex items-center gap-2 overflow-x-auto">
               {sortedStages.map((stage, index) => (
                 <div key={stage.id} className="flex items-center gap-2 shrink-0">

@@ -163,7 +163,7 @@ export function OrderCard({
               acknowledgeChanges(order.id);
             }}
             className="flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 border-shopbox-muted text-transparent hover:border-shopbox-text hover:text-shopbox-text transition-colors"
-            title="Markér ændringer som set"
+            title={t("card.acknowledgeChanges")}
           >
             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -317,7 +317,7 @@ export function OrderCard({
               className="rounded-md bg-shopbox-accent/10 px-2 py-1 text-[10px] font-medium text-shopbox-accent hover:bg-shopbox-accent/20 transition-colors"
               title={t("card.sendSms", { phone: order.customerInfo!.phone! })}
             >
-              {(order.smsSentCount ?? 0) > 0 ? `SMS (${order.smsSentCount})` : "SMS"}
+              {(order.smsSentCount ?? 0) > 0 ? `${t("header.smsButton")} (${order.smsSentCount})` : t("header.smsButton")}
             </button>
           )}
         </div>

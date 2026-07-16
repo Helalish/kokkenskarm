@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="da" className={`${lexend.variable} h-full`}>
+    <html lang="en" className={`${lexend.variable} h-full`}>
       <body className="min-h-full bg-shopbox-surface text-shopbox-text font-(family-name:--font-lexend) antialiased">
         <ThemeProvider>
           {children}

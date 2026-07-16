@@ -44,7 +44,7 @@ export function KdsHeader() {
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-shopbox-primary border-b border-shopbox-border">
       <div className="flex items-center gap-3">
-        <h1 className="text-lg font-bold text-shopbox-text">Shopbox KDS</h1>
+        <h1 className="text-lg font-bold text-shopbox-text">{t("header.title")}</h1>
 
         {stations.length > 0 && (
           <div className="flex items-center gap-1 ml-2">
@@ -57,7 +57,7 @@ export function KdsHeader() {
               )}
               onClick={() => setActiveStation(null)}
             >
-              Alle
+              {t("header.stations.all")}
             </button>
             {stations.map((station) => (
               <button
@@ -86,10 +86,18 @@ export function KdsHeader() {
               })
             }
             title={
-              viewMode === "grid" ? "Skift til Kanban" : viewMode === "kanban" ? "Skift til Sammendrag" : "Skift til Gitter"
+              viewMode === "grid"
+                ? t("header.view.kanbanTitle")
+                : viewMode === "kanban"
+                  ? t("header.view.summaryTitle")
+                  : t("header.view.gridTitle")
             }
           >
-            {viewMode === "grid" ? "▥ Gitter" : viewMode === "kanban" ? "▤ Kanban" : "Σ Sammendrag"}
+            {viewMode === "grid"
+              ? t("header.view.grid")
+              : viewMode === "kanban"
+                ? t("header.view.kanban")
+                : t("header.view.summary")}
           </button>
 
         {/* Sort toggle */}
@@ -126,7 +134,7 @@ export function KdsHeader() {
             onClick={() => setShowSmsLog((s) => !s)}
             title={t("header.smsLog.title")}
           >
-            SMS {entries.length > 0 && `(${entries.length})`}
+            {t("header.smsButton")} {entries.length > 0 && `(${entries.length})`}
           </button>
           {showSmsLog && <SmsLogPanel onClose={() => setShowSmsLog(false)} />}
         </div>
@@ -135,7 +143,7 @@ export function KdsHeader() {
           href="/pre-orders"
           className="rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
         >
-          Forudbestillinger ({preOrders.length})
+          {t("header.preOrders", { count: preOrders.length })}
         </Link>
 
         {/* Undo */}

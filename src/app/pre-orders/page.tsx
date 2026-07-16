@@ -7,8 +7,10 @@ import { useOrdersStore } from "@/stores/orders-store";
 import { PreOrderCard } from "@/components/pre-order-card";
 import { OrderCardExpanded } from "@/components/order-card-expanded";
 import type { Order } from "@/types/order";
+import { useT } from "@/hooks/use-t";
 
 export default function PreOrdersPage() {
+  const t = useT();
   const { preOrders, removePreOrder, promoteMinutesBefore, setPromoteMinutesBefore } =
     usePreOrdersStore();
   const { addOrder } = useOrdersStore();
@@ -56,24 +58,24 @@ export default function PreOrdersPage() {
             href="/kds"
             className="text-shopbox-text-secondary hover:text-shopbox-text transition-colors"
           >
-            ← KDS
+            {t("preOrders.back")}
           </Link>
-          <h1 className="text-lg font-bold text-shopbox-accent">Forudbestillinger</h1>
+          <h1 className="text-lg font-bold text-shopbox-accent">{t("preOrders.title")}</h1>
           <span className="text-sm text-shopbox-muted">({preOrders.length})</span>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-shopbox-text-secondary">
-            Auto-start
+            {t("preOrders.autoStart")}
             <select
               value={promoteMinutesBefore}
               onChange={(e) => setPromoteMinutesBefore(Number(e.target.value))}
               className="rounded-lg bg-shopbox-card border border-shopbox-border px-2 py-1 text-sm text-shopbox-text outline-none"
             >
-              <option value={5}>5 min før</option>
-              <option value={10}>10 min før</option>
-              <option value={15}>15 min før</option>
-              <option value={20}>20 min før</option>
-              <option value={30}>30 min før</option>
+              <option value={5}>{t("preOrders.minutesBefore", { minutes: 5 })}</option>
+              <option value={10}>{t("preOrders.minutesBefore", { minutes: 10 })}</option>
+              <option value={15}>{t("preOrders.minutesBefore", { minutes: 15 })}</option>
+              <option value={20}>{t("preOrders.minutesBefore", { minutes: 20 })}</option>
+              <option value={30}>{t("preOrders.minutesBefore", { minutes: 30 })}</option>
             </select>
           </label>
         </div>
@@ -83,8 +85,8 @@ export default function PreOrdersPage() {
       {sortedPreOrders.length === 0 ? (
         <div className="flex-1 flex items-center justify-center text-shopbox-muted">
           <div className="text-center">
-            <p className="text-2xl mb-2">Ingen forudbestillinger</p>
-            <p className="text-sm">Forudbestillinger vises automatisk her</p>
+            <p className="text-2xl mb-2">{t("preOrders.empty.title")}</p>
+            <p className="text-sm">{t("preOrders.empty.subtitle")}</p>
           </div>
         </div>
       ) : (

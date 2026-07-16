@@ -8,6 +8,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { filterOrdersByStation } from "@/lib/category-filter";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useOrderPolling } from "@/hooks/use-order-polling";
+import { useT } from "@/hooks/use-t";
 import { OrderGrid } from "@/components/order-grid";
 import { KanbanView } from "@/components/kanban-view";
 import { SummaryView } from "@/components/summary-view";
@@ -19,6 +20,7 @@ export default function KdsPage() {
   const { stages } = usePipeline();
   const { getActiveStation } = useStationStore();
   const { soundEnabled, viewMode, autoDismissReadySeconds } = useSettingsStore();
+  const t = useT();
   const [activeStageFilter, setActiveStageFilter] = useState<string | null>(null);
   const prevOrderCountRef = useRef(orders.length);
 
@@ -70,7 +72,7 @@ export default function KdsPage() {
         <div className="flex-1 flex items-center justify-center text-shopbox-muted">
           <div className="text-center">
             <div className="h-8 w-8 border-2 border-shopbox-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-lg">Loading orders...</p>
+            <p className="text-lg">{t("loading.orders")}</p>
           </div>
         </div>
       </div>

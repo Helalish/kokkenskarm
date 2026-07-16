@@ -3,26 +3,27 @@
 import Link from "next/link";
 import { useSettingsStore, DEFAULT_THEME } from "@/stores/settings-store";
 import type { ThemeColors } from "@/types/settings";
+import { useT } from "@/hooks/use-t";
 
-const THEME_FIELDS: { key: keyof ThemeColors; label: string; description: string }[] = [
-  { key: "surface", label: "Baggrund", description: "Hovedbaggrund for hele skærmen" },
-  { key: "primary", label: "Header", description: "Header og navigation baggrund" },
-  { key: "card", label: "Kort", description: "Ordre-kort baggrund" },
-  { key: "cardHover", label: "Kort hover", description: "Kort baggrund ved hover" },
-  { key: "border", label: "Kant", description: "Kanter og skillelinjer" },
-  { key: "accent", label: "Accent", description: "Primær accent-farve (knapper, badges)" },
-  { key: "text", label: "Tekst", description: "Primær tekst-farve" },
-  { key: "textSecondary", label: "Sekundær tekst", description: "Sekundær tekst-farve" },
-  { key: "muted", label: "Dæmpet", description: "Dæmpet tekst og ikoner" },
+const THEME_FIELDS: { key: keyof ThemeColors; labelKey: string; descriptionKey: string }[] = [
+  { key: "surface", labelKey: "design.field.surface.label", descriptionKey: "design.field.surface.description" },
+  { key: "primary", labelKey: "design.field.primary.label", descriptionKey: "design.field.primary.description" },
+  { key: "card", labelKey: "design.field.card.label", descriptionKey: "design.field.card.description" },
+  { key: "cardHover", labelKey: "design.field.cardHover.label", descriptionKey: "design.field.cardHover.description" },
+  { key: "border", labelKey: "design.field.border.label", descriptionKey: "design.field.border.description" },
+  { key: "accent", labelKey: "design.field.accent.label", descriptionKey: "design.field.accent.description" },
+  { key: "text", labelKey: "design.field.text.label", descriptionKey: "design.field.text.description" },
+  { key: "textSecondary", labelKey: "design.field.textSecondary.label", descriptionKey: "design.field.textSecondary.description" },
+  { key: "muted", labelKey: "design.field.muted.label", descriptionKey: "design.field.muted.description" },
 ];
 
-const PRESETS: { name: string; theme: ThemeColors }[] = [
+const PRESETS: { nameKey: string; theme: ThemeColors }[] = [
   {
-    name: "Takeaway (Standard)",
+    nameKey: "design.preset.standard",
     theme: { ...DEFAULT_THEME },
   },
   {
-    name: "Nattkøkken",
+    nameKey: "design.preset.night",
     theme: {
       surface: "#0A0A0A",
       primary: "#141414",
@@ -36,7 +37,7 @@ const PRESETS: { name: string; theme: ThemeColors }[] = [
     },
   },
   {
-    name: "Hurtig & Rød",
+    nameKey: "design.preset.red",
     theme: {
       surface: "#0C0404",
       primary: "#1A0A0A",
@@ -50,7 +51,7 @@ const PRESETS: { name: string; theme: ThemeColors }[] = [
     },
   },
   {
-    name: "Blå Kontrast",
+    nameKey: "design.preset.blue",
     theme: {
       surface: "#050A14",
       primary: "#0C1525",
@@ -64,7 +65,7 @@ const PRESETS: { name: string; theme: ThemeColors }[] = [
     },
   },
   {
-    name: "Shopbox Grøn",
+    nameKey: "design.preset.green",
     theme: {
       surface: "#032620",
       primary: "#043129",
@@ -80,27 +81,28 @@ const PRESETS: { name: string; theme: ThemeColors }[] = [
 ];
 
 export default function DesignSettingsPage() {
+  const t = useT();
   const { theme, updateTheme, resetTheme, textScale, updateSettings } = useSettingsStore();
 
   return (
     <div className="min-h-screen bg-shopbox-surface p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-shopbox-text">Design</h1>
+          <h1 className="text-2xl font-bold text-shopbox-text">{t("design.title")}</h1>
           <Link
             href="/settings"
             className="rounded-lg bg-shopbox-accent px-4 py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 transition-colors"
           >
-            ← Tilbage
+            {t("design.back")}
           </Link>
         </div>
 
         {/* Text scale */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Tekststørrelse</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("design.textScale")}</h2>
           <div>
             <label className="block text-sm text-shopbox-text-secondary mb-2">
-              Størrelse: {(textScale * 100).toFixed(0)}%
+              {t("design.size", { percent: (textScale * 100).toFixed(0) })}
             </label>
             <input
               type="range"
@@ -118,17 +120,17 @@ export default function DesignSettingsPage() {
             </div>
           </div>
           <p className="text-xs text-shopbox-muted mt-3">
-            Påvirker al tekst i KDS i realtid. Juster efter skærmstørrelse og afstand.
+            {t("design.textScaleHelper")}
           </p>
         </section>
 
         {/* Presets */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Farveskabeloner</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("design.presets")}</h2>
           <div className="grid grid-cols-2 gap-3">
             {PRESETS.map((preset) => (
               <button
-                key={preset.name}
+                key={preset.nameKey}
                 onClick={() => updateTheme(preset.theme)}
                 className="rounded-xl border border-shopbox-border p-3 text-left hover:border-shopbox-accent/50 transition-colors"
               >
@@ -143,7 +145,7 @@ export default function DesignSettingsPage() {
                     )
                   )}
                 </div>
-                <p className="text-xs font-medium">{preset.name}</p>
+                <p className="text-xs font-medium">{t(preset.nameKey)}</p>
               </button>
             ))}
           </div>
@@ -152,17 +154,17 @@ export default function DesignSettingsPage() {
         {/* Individual color pickers */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Farver</h2>
+            <h2 className="text-lg font-semibold">{t("design.colors")}</h2>
             <button
               onClick={resetTheme}
               className="text-xs text-shopbox-accent hover:underline"
             >
-              Nulstil til standard
+              {t("design.reset")}
             </button>
           </div>
 
           <div className="space-y-3">
-            {THEME_FIELDS.map(({ key, label, description }) => (
+            {THEME_FIELDS.map(({ key, labelKey, descriptionKey }) => (
               <label key={key} className="flex items-center gap-4 cursor-pointer rounded-xl p-2 -mx-2 hover:bg-shopbox-surface/50 transition-colors">
                 <div
                   className="relative h-12 w-12 shrink-0 rounded-xl border-2 border-shopbox-border shadow-inner overflow-hidden"
@@ -176,8 +178,8 @@ export default function DesignSettingsPage() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{label}</p>
-                  <p className="text-xs text-shopbox-muted">{description}</p>
+                  <p className="text-sm font-medium">{t(labelKey)}</p>
+                  <p className="text-xs text-shopbox-muted">{t(descriptionKey)}</p>
                 </div>
               </label>
             ))}
@@ -186,7 +188,7 @@ export default function DesignSettingsPage() {
 
         {/* Live preview */}
         <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
-          <h2 className="text-lg font-semibold mb-4">Live preview</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("design.livePreview")}</h2>
           <div
             className="rounded-xl p-4"
             style={{ backgroundColor: theme.surface }}
@@ -218,10 +220,10 @@ export default function DesignSettingsPage() {
                 </span>
               </div>
               <p className="text-xs" style={{ color: theme.textSecondary }}>
-                Classic Burger · Large
+                {t("design.previewItem")}
               </p>
               <p className="text-xs" style={{ color: theme.muted }}>
-                Extra cheese, No onions
+                {t("design.previewMods")}
               </p>
             </div>
           </div>

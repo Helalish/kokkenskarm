@@ -4,6 +4,7 @@ type Dict = Record<string, string>;
 
 const da: Dict = {
   // KDS header
+  "header.title": "Shopbox KDS",
   "header.sort.oldest": "↑ Ældste",
   "header.sort.newest": "↓ Nyeste",
   "header.sort.oldestTitle": "Ældste først",
@@ -14,6 +15,15 @@ const da: Dict = {
   "header.undo": "↩ Fortryd ({count})",
   "header.customerDisplay": "Kundeskærm",
   "header.settings": "⚙ Indstillinger",
+  "header.stations.all": "Alle",
+  "header.view.grid": "▥ Gitter",
+  "header.view.kanban": "▤ Kanban",
+  "header.view.summary": "Σ Sammendrag",
+  "header.view.gridTitle": "Skift til Gitter",
+  "header.view.kanbanTitle": "Skift til Kanban",
+  "header.view.summaryTitle": "Skift til Sammendrag",
+  "header.preOrders": "Forudbestillinger ({count})",
+  "header.smsButton": "SMS",
 
   // Pipeline bar
   "pipelineBar.all": "Alle",
@@ -27,6 +37,7 @@ const da: Dict = {
   "card.itemsCount": "{total} varer",
   "card.showDetails": "Vis detaljer",
   "card.sendSms": "Send SMS til {phone}",
+  "card.acknowledgeChanges": "Markér ændringer som set",
   "card.deleted": "Slettet — lav ikke",
   "card.new": "NY",
   "card.refunded": "Refunderet",
@@ -39,7 +50,7 @@ const da: Dict = {
   "expanded.items": "Varer ({done}/{total} færdig)",
   "expanded.markAllDone": "Markér alle færdige",
   "expanded.variant": "Variant",
-  "expanded.mod": "Mod",
+  "expanded.mod": "Ændringer",
   "expanded.ingredients": "Ingredienser",
   "expanded.moveTo": "Flyt til: {next}",
   "expanded.moveBack": "← Flyt tilbage",
@@ -49,6 +60,7 @@ const da: Dict = {
   // Grid empty state
   "grid.empty.title": "Ingen aktive ordrer",
   "grid.empty.subtitle": "Nye ordrer vises automatisk her",
+  "loading.orders": "Indlæser ordrer...",
 
   // Customer display
   "customer.orderStatus": "Ordrestatus",
@@ -56,6 +68,7 @@ const da: Dict = {
   "customer.ready": "Klar",
   "customer.preparingEmpty": "Ingen ordrer lige nu",
   "customer.readyEmpty": "Ordrer vises her når de er klar",
+  "customer.kdsLink": "KDS",
 
   // Payment badge
   "payment.paid": "Betalt",
@@ -67,9 +80,14 @@ const da: Dict = {
   "settings.backToKds": "← Tilbage til KDS",
   "settings.display": "Visning",
   "settings.timers": "Timer-tærskler",
+  "settings.sorting": "Sortering",
+  "settings.columns": "Antal kolonner: {count}",
+  "settings.textScale": "Tekststørrelse: {percent}%",
+  "settings.scrollableCards": "Scroll i ordre-bokse",
+  "settings.scrollableCards.helper": "Begræns boksens højde og tilføj scroll. Slå fra for at vise hele ordren uden scroll.",
   "settings.timer.warning": "Advarsel efter: {min} min",
   "settings.timer.critical": "Kritisk efter: {min} min",
-  "settings.timer.autoDismiss": "Fjern fra \"Ready for Pick up\" efter: {value}",
+  "settings.timer.autoDismiss": "Fjern fra \"Klar\" efter: {value}",
   "settings.timer.disabled": "Slået fra",
   "settings.timer.off": "Fra",
   "settings.timer.helper":
@@ -81,16 +99,101 @@ const da: Dict = {
   "settings.autoAdvance": "Auto-skub når alle produkter er færdige",
   "settings.autoAdvance.helper":
     "Når alle produkter i en ordre er markeret færdige, rykkes ordren automatisk til næste stadie.",
+  "settings.sound": "Lyd",
+  "settings.sound.enable": "Afspil lyd ved nye ordrer",
   "settings.sms": "SMS-notifikationer",
   "settings.sms.enable": "Aktivér SMS",
   "settings.sms.helperDemo":
-    "Send automatisk SMS til kunden når en ordre når \"Ready for Pick up\".",
-  "settings.sms.previewLabel": "Besked ved \"Ready for Pick up\"",
+    "Send automatisk SMS til kunden når en ordre når \"Klar\".",
+  "settings.sms.previewLabel": "Besked ved \"Klar\"",
   "settings.sms.previewNote": "Denne besked er fast og kan ikke redigeres.",
+  "settings.configuration": "Konfiguration",
+  "settings.pipeline": "Pipeline-stadier →",
+  "settings.stations": "Stationer →",
+  "settings.design": "Design & farver →",
+
+  // Pipeline settings
+  "pipeline.title": "Pipeline-stadier",
+  "pipeline.back": "← Tilbage",
+  "pipeline.active": "Aktive stadier ({count})",
+  "pipeline.empty": "Ingen stadier oprettet endnu. Tilføj stadier nedenfor.",
+  "pipeline.sms": "SMS",
+  "pipeline.smsPlaceholder": "SMS-besked, f.eks. Din ordre #{orderNumber} er klar!",
+  "pipeline.smsHelp": "#{orderNumber} erstattes med ordrenummer",
+  "pipeline.addTitle": "Tilføj nyt stadie",
+  "pipeline.namePlaceholder": "Stadie-navn (f.eks. 'I gang')",
+  "pipeline.color": "Farve",
+  "pipeline.add": "Tilføj stadie",
+  "pipeline.flow": "Pipeline-flow",
+
+  // Design settings
+  "design.title": "Design",
+  "design.back": "← Tilbage",
+  "design.textScale": "Tekststørrelse",
+  "design.size": "Størrelse: {percent}%",
+  "design.textScaleHelper": "Påvirker al tekst i KDS i realtid. Juster efter skærmstørrelse og afstand.",
+  "design.presets": "Farveskabeloner",
+  "design.colors": "Farver",
+  "design.reset": "Nulstil til standard",
+  "design.livePreview": "Live preview",
+  "design.previewItem": "Classic Burger · Large",
+  "design.previewMods": "Ekstra ost, ingen løg",
+  "design.field.surface.label": "Baggrund",
+  "design.field.surface.description": "Hovedbaggrund for hele skærmen",
+  "design.field.primary.label": "Header",
+  "design.field.primary.description": "Header og navigation baggrund",
+  "design.field.card.label": "Kort",
+  "design.field.card.description": "Ordre-kort baggrund",
+  "design.field.cardHover.label": "Kort hover",
+  "design.field.cardHover.description": "Kort baggrund ved hover",
+  "design.field.border.label": "Kant",
+  "design.field.border.description": "Kanter og skillelinjer",
+  "design.field.accent.label": "Accent",
+  "design.field.accent.description": "Primær accent-farve (knapper, badges)",
+  "design.field.text.label": "Tekst",
+  "design.field.text.description": "Primær tekst-farve",
+  "design.field.textSecondary.label": "Sekundær tekst",
+  "design.field.textSecondary.description": "Sekundær tekst-farve",
+  "design.field.muted.label": "Dæmpet",
+  "design.field.muted.description": "Dæmpet tekst og ikoner",
+  "design.preset.standard": "Takeaway (standard)",
+  "design.preset.night": "Natkøkken",
+  "design.preset.red": "Hurtig & rød",
+  "design.preset.blue": "Blå kontrast",
+  "design.preset.green": "Shopbox grøn",
+
+  // Pre-orders
+  "preOrders.back": "← KDS",
+  "preOrders.title": "Forudbestillinger",
+  "preOrders.autoStart": "Auto-start",
+  "preOrders.minutesBefore": "{minutes} min før",
+  "preOrders.empty.title": "Ingen forudbestillinger",
+  "preOrders.empty.subtitle": "Forudbestillinger vises automatisk her",
+
+  // Summary
+  "summary.empty": "Ingen aktive ordrer",
+  "summary.orders": "ordrer",
+  "summary.itemsTotal": "varer i alt",
+  "summary.done": "færdige",
+  "summary.ready": "Klar",
+  "summary.readyCount": "{count} klar",
+
+  // SMS log
+  "smsLog.title": "SMS-historik",
+  "smsLog.clear": "Ryd log",
+  "smsLog.empty": "Ingen SMS sendt endnu",
+  "smsLog.order": "Ordre #{orderNumber}",
+  "smsLog.resend": "Send igen",
+
+  // Stations placeholder
+  "stations.title": "Stationer",
+  "stations.back": "← Tilbage",
+  "stations.placeholder": "Stationskonfiguration er ikke tilgængelig endnu. Den nuværende KDS-release fokuserer på at hente ordrer og opdatere status fra Shopbox. Denne side udvides, når multi-station-filtrering bliver implementeret.",
 };
 
 const en: Dict = {
   // KDS header
+  "header.title": "Shopbox KDS",
   "header.sort.oldest": "↑ Oldest",
   "header.sort.newest": "↓ Newest",
   "header.sort.oldestTitle": "Oldest first",
@@ -101,6 +204,15 @@ const en: Dict = {
   "header.undo": "↩ Undo ({count})",
   "header.customerDisplay": "Customer screen",
   "header.settings": "⚙ Settings",
+  "header.stations.all": "All",
+  "header.view.grid": "▥ Grid",
+  "header.view.kanban": "▤ Kanban",
+  "header.view.summary": "Σ Summary",
+  "header.view.gridTitle": "Switch to grid",
+  "header.view.kanbanTitle": "Switch to kanban",
+  "header.view.summaryTitle": "Switch to summary",
+  "header.preOrders": "Pre-orders ({count})",
+  "header.smsButton": "SMS",
 
   // Pipeline bar
   "pipelineBar.all": "All",
@@ -114,6 +226,7 @@ const en: Dict = {
   "card.itemsCount": "{total} items",
   "card.showDetails": "Show details",
   "card.sendSms": "Send SMS to {phone}",
+  "card.acknowledgeChanges": "Mark changes as reviewed",
   "card.deleted": "Deleted — don't make",
   "card.new": "NEW",
   "card.refunded": "Refunded",
@@ -126,7 +239,7 @@ const en: Dict = {
   "expanded.items": "Items ({done}/{total} done)",
   "expanded.markAllDone": "Mark all done",
   "expanded.variant": "Variant",
-  "expanded.mod": "Mod",
+  "expanded.mod": "Modifiers",
   "expanded.ingredients": "Ingredients",
   "expanded.moveTo": "Move to: {next}",
   "expanded.moveBack": "← Move back",
@@ -136,6 +249,7 @@ const en: Dict = {
   // Grid empty state
   "grid.empty.title": "No active orders",
   "grid.empty.subtitle": "New orders appear here automatically",
+  "loading.orders": "Loading orders...",
 
   // Customer display
   "customer.orderStatus": "Order status",
@@ -143,6 +257,7 @@ const en: Dict = {
   "customer.ready": "Ready",
   "customer.preparingEmpty": "No orders right now",
   "customer.readyEmpty": "Orders appear here when they're ready",
+  "customer.kdsLink": "KDS",
 
   // Payment badge
   "payment.paid": "Paid",
@@ -154,9 +269,14 @@ const en: Dict = {
   "settings.backToKds": "← Back to KDS",
   "settings.display": "Display",
   "settings.timers": "Timer thresholds",
+  "settings.sorting": "Sorting",
+  "settings.columns": "Columns: {count}",
+  "settings.textScale": "Text size: {percent}%",
+  "settings.scrollableCards": "Scrollable order cards",
+  "settings.scrollableCards.helper": "Limit card height and add scrolling. Disable to show the entire order without scrolling.",
   "settings.timer.warning": "Warning after: {min} min",
   "settings.timer.critical": "Critical after: {min} min",
-  "settings.timer.autoDismiss": "Remove from \"Ready for Pick up\" after: {value}",
+  "settings.timer.autoDismiss": "Remove from \"Ready\" after: {value}",
   "settings.timer.disabled": "Disabled",
   "settings.timer.off": "Off",
   "settings.timer.helper":
@@ -168,12 +288,96 @@ const en: Dict = {
   "settings.autoAdvance": "Auto-advance when all items are done",
   "settings.autoAdvance.helper":
     "When all items in an order are marked done, the order automatically advances to the next stage.",
+  "settings.sound": "Sound",
+  "settings.sound.enable": "Play a sound for new orders",
   "settings.sms": "SMS notifications",
   "settings.sms.enable": "Enable SMS",
   "settings.sms.helperDemo":
-    "Automatically send an SMS to the customer when an order reaches \"Ready for Pick up\".",
-  "settings.sms.previewLabel": "Message at \"Ready for Pick up\"",
+    "Automatically send an SMS to the customer when an order reaches \"Ready\".",
+  "settings.sms.previewLabel": "Message at \"Ready\"",
   "settings.sms.previewNote": "This message is fixed and cannot be edited.",
+  "settings.configuration": "Configuration",
+  "settings.pipeline": "Pipeline stages →",
+  "settings.stations": "Stations →",
+  "settings.design": "Design & colors →",
+
+  // Pipeline settings
+  "pipeline.title": "Pipeline stages",
+  "pipeline.back": "← Back",
+  "pipeline.active": "Active stages ({count})",
+  "pipeline.empty": "No stages created yet. Add stages below.",
+  "pipeline.sms": "SMS",
+  "pipeline.smsPlaceholder": "SMS message, e.g. Your order #{orderNumber} is ready!",
+  "pipeline.smsHelp": "#{orderNumber} is replaced with the order number",
+  "pipeline.addTitle": "Add new stage",
+  "pipeline.namePlaceholder": "Stage name (e.g. 'In progress')",
+  "pipeline.color": "Color",
+  "pipeline.add": "Add stage",
+  "pipeline.flow": "Pipeline flow",
+
+  // Design settings
+  "design.title": "Design",
+  "design.back": "← Back",
+  "design.textScale": "Text size",
+  "design.size": "Size: {percent}%",
+  "design.textScaleHelper": "Affects all text in KDS in real time. Adjust based on screen size and distance.",
+  "design.presets": "Color presets",
+  "design.colors": "Colors",
+  "design.reset": "Reset to default",
+  "design.livePreview": "Live preview",
+  "design.previewItem": "Classic Burger · Large",
+  "design.previewMods": "Extra cheese, no onions",
+  "design.field.surface.label": "Background",
+  "design.field.surface.description": "Main background for the entire screen",
+  "design.field.primary.label": "Header",
+  "design.field.primary.description": "Header and navigation background",
+  "design.field.card.label": "Card",
+  "design.field.card.description": "Order card background",
+  "design.field.cardHover.label": "Card hover",
+  "design.field.cardHover.description": "Order card background on hover",
+  "design.field.border.label": "Border",
+  "design.field.border.description": "Borders and dividers",
+  "design.field.accent.label": "Accent",
+  "design.field.accent.description": "Primary accent color (buttons, badges)",
+  "design.field.text.label": "Text",
+  "design.field.text.description": "Primary text color",
+  "design.field.textSecondary.label": "Secondary text",
+  "design.field.textSecondary.description": "Secondary text color",
+  "design.field.muted.label": "Muted",
+  "design.field.muted.description": "Muted text and icons",
+  "design.preset.standard": "Takeaway (standard)",
+  "design.preset.night": "Night kitchen",
+  "design.preset.red": "Fast & red",
+  "design.preset.blue": "Blue contrast",
+  "design.preset.green": "Shopbox green",
+
+  // Pre-orders
+  "preOrders.back": "← KDS",
+  "preOrders.title": "Pre-orders",
+  "preOrders.autoStart": "Auto-start",
+  "preOrders.minutesBefore": "{minutes} min before",
+  "preOrders.empty.title": "No pre-orders",
+  "preOrders.empty.subtitle": "Pre-orders appear here automatically",
+
+  // Summary
+  "summary.empty": "No active orders",
+  "summary.orders": "orders",
+  "summary.itemsTotal": "items total",
+  "summary.done": "done",
+  "summary.ready": "Ready",
+  "summary.readyCount": "{count} ready",
+
+  // SMS log
+  "smsLog.title": "SMS history",
+  "smsLog.clear": "Clear log",
+  "smsLog.empty": "No SMS sent yet",
+  "smsLog.order": "Order #{orderNumber}",
+  "smsLog.resend": "Send again",
+
+  // Stations placeholder
+  "stations.title": "Stations",
+  "stations.back": "← Back",
+  "stations.placeholder": "Station configuration is not available yet. The current KDS release focuses on listing orders and updating status from Shopbox. This page will be expanded when multi-station filtering is implemented.",
 };
 
 export const translations: Record<Language, Dict> = { da, en };

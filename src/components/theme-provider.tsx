@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import { useLanguageStore } from "@/stores/language-store";
 import { useSettingsStore } from "@/stores/settings-store";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const language = useLanguageStore((s) => s.language);
   const { theme, textScale } = useSettingsStore();
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   useEffect(() => {
     const root = document.documentElement;
