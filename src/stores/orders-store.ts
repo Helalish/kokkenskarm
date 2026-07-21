@@ -4,6 +4,7 @@ import { create } from "zustand";
 import type { Order } from "@/types/order";
 import { isKdsStageId, type KdsApiStatus } from "@/types/pipeline";
 import { useToastStore } from "@/stores/toast-store";
+import { updateOrderStatus as shopboxUpdateOrderStatus, updateProductPrepared } from "@/lib/shopbox-api";
 
 interface OrdersState {
   orders: Order[];
@@ -56,33 +57,85 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
   },
 
   toggleItemDone: (orderId, itemId) => {
+    const order = get().orders.find((o) => o.id === orderId);
+    const item = order?.items.find((i) => i.id === itemId);
+    if (!order || !item) return;
+
+    const previous = item.isDone;
+    const next = !previous;
+
+    // Optimistic UI update
     set((state) => ({
       orders: state.orders.map((o) =>
         o.id === orderId
-          ? {
-              ...o,
-              items: o.items.map((item) =>
-                item.id === itemId
-                  ? { ...item, isDone: !item.isDone }
-                  : item
-              ),
-            }
+          ? { ...o, items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: next } : it)) }
           : o
       ),
     }));
+
+    void updateProductPrepared(orderId, itemId, next).catch(() => {
+      // Rollback on failure
+      set((state) => ({
+        orders: state.orders.map((o) =>
+          o.id === orderId
+            ? { ...o, items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: previous } : it)) }
+            : o
+        ),
+      }));
+
+      useToastStore.getState().addToast({
+        type: "info",
+        message: "Failed to update item",
+        detail: "The change has been reverted. Please try again.",
+        duration: 4000,
+      });
+    });
   },
 
   markAllItemsDone: (orderId) => {
+    const order = get().orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    const previousById = new Map(order.items.map((i) => [i.id, i.isDone] as const));
+    const toUpdate = order.items.filter((i) => !i.isDone);
+
+    // Optimistic UI update
     set((state) => ({
       orders: state.orders.map((o) =>
-        o.id === orderId
-          ? {
-              ...o,
-              items: o.items.map((item) => ({ ...item, isDone: true })),
-            }
-          : o
+        o.id === orderId ? { ...o, items: o.items.map((i) => ({ ...i, isDone: true })) } : o
       ),
     }));
+
+    if (toUpdate.length === 0) return;
+
+    void Promise.allSettled(toUpdate.map((i) => updateProductPrepared(orderId, i.id, true))).then((results) => {
+      const failedIds = toUpdate
+        .filter((_, idx) => results[idx]?.status === "rejected")
+        .map((i) => i.id);
+
+      if (failedIds.length === 0) return;
+
+      // Rollback only the ones that failed
+      set((state) => ({
+        orders: state.orders.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                items: o.items.map((i) =>
+                  failedIds.includes(i.id) ? { ...i, isDone: previousById.get(i.id) ?? false } : i
+                ),
+              }
+            : o
+        ),
+      }));
+
+      useToastStore.getState().addToast({
+        type: "info",
+        message: "Failed to update some items",
+        detail: "Some item checks were reverted. Please try again.",
+        duration: 4500,
+      });
+    });
   },
 
   acknowledgeChanges: (orderId) => {
@@ -149,18 +202,10 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     }
 
     try {
-      const response = await fetch(`/api/orders/${orderId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          order_type: order.orderType ?? "takeaway",
-          status,
-        }),
+      await shopboxUpdateOrderStatus(orderId, {
+        order_type: order.orderType ?? "takeaway",
+        status,
       });
-
-      if (!response.ok) {
-        throw new Error(`Status ${response.status}`);
-      }
 
       return true;
     } catch {

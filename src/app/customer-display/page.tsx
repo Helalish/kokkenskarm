@@ -2,12 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { useOrdersStore } from "@/stores/orders-store";
-import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
+import { useCustomerDisplayPolling } from "@/hooks/use-customer-display-polling";
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -47,29 +46,33 @@ function OrderNumberTile({
 }
 
 export default function CustomerDisplayPage() {
-  const { orders } = useOrdersStore();
-  const { stages } = usePipeline();
+  const { inProgressOrders, readyOrders, isLoading } = useCustomerDisplayPolling();
   const { soundEnabled } = useSettingsStore();
   const t = useT();
   const [recentlyReady, setRecentlyReady] = useState<Set<string>>(new Set());
-  const prevOrdersRef = useRef<Map<string, string>>(new Map());
+  const prevReadyIdsRef = useRef<Set<string> | null>(null);
 
-  // Track which orders just moved to "ready" for animation
+  // Highlight + sound when an order newly appears in "ready"
   useEffect(() => {
-    const terminalIds = new Set(stages.filter((s) => s.isTerminal).map((s) => s.id));
-    const newReady = new Set<string>();
+    // Wait for the first fetch. Otherwise empty [] → first loaded orders
+    // are all treated as "newly ready" and flash green.
+    if (isLoading) return;
 
-    for (const order of orders) {
-      const prevStage = prevOrdersRef.current.get(order.id);
-      if (terminalIds.has(order.currentStageId) && prevStage && !terminalIds.has(prevStage)) {
-        newReady.add(order.id);
+    const currentReadyIds = new Set(readyOrders.map((o) => o.id));
+
+    if (prevReadyIdsRef.current === null) {
+      prevReadyIdsRef.current = currentReadyIds;
+      return;
+    }
+
+    const newReady = new Set<string>();
+    for (const id of currentReadyIds) {
+      if (!prevReadyIdsRef.current.has(id)) {
+        newReady.add(id);
       }
     }
 
-    // Update prev snapshot
-    const snapshot = new Map<string, string>();
-    for (const o of orders) snapshot.set(o.id, o.currentStageId);
-    prevOrdersRef.current = snapshot;
+    prevReadyIdsRef.current = currentReadyIds;
 
     if (newReady.size > 0) {
       if (soundEnabled) playNewOrderSound();
@@ -80,12 +83,7 @@ export default function CustomerDisplayPage() {
         clearTimeout(clearTimer);
       };
     }
-  }, [orders, stages, soundEnabled]);
-
-  // Separate orders
-  const terminalStageIds = new Set(stages.filter((s) => s.isTerminal).map((s) => s.id));
-  const inProgressOrders = orders.filter((o) => !terminalStageIds.has(o.currentStageId));
-  const readyOrders = orders.filter((o) => terminalStageIds.has(o.currentStageId));
+  }, [readyOrders, soundEnabled, isLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-black overflow-hidden select-none">

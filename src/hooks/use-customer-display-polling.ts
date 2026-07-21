@@ -1,56 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useOrdersStore } from "@/stores/orders-store";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Order } from "@/types/order";
-import { fetchOrders as shopboxFetchOrders } from "@/lib/shopbox-api";
+import { fetchOrders } from "@/lib/shopbox-api";
 
 const POLL_INTERVAL = 8000;
 
-export function useOrderPolling() {
-  const setOrders = useOrdersStore((s) => s.setOrders);
+export function useCustomerDisplayPolling() {
+  const [inProgressOrders, setInProgressOrders] = useState<Order[]>([]);
+  const [readyOrders, setReadyOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
   const activeRef = useRef(false);
 
-  const fetchOrders = useCallback(async () => {
+  const refresh = useCallback(async () => {
     if (typeof document !== "undefined" && document.hidden) return;
     if (!activeRef.current) return;
 
     const requestId = ++requestIdRef.current;
 
     try {
-      const orders = await shopboxFetchOrders();
+      const [inProgress, ready] = await Promise.all([
+        fetchOrders("in_progress"),
+        fetchOrders("ready"),
+      ]);
+
       if (requestId !== requestIdRef.current || !activeRef.current) return;
 
-      setOrders((orders ?? []) as Order[]);
+      setInProgressOrders(inProgress);
+      setReadyOrders(ready);
       setError(null);
     } catch (err) {
       if (requestId !== requestIdRef.current || !activeRef.current) return;
       setError("Network error");
-      console.error("Order polling error:", err);
+      console.error("Customer display polling error:", err);
     } finally {
       if (requestId === requestIdRef.current && activeRef.current) {
         setIsLoading(false);
       }
     }
-  }, [setOrders]);
+  }, []);
 
   useEffect(() => {
     activeRef.current = true;
 
-    // Defer the first fetch so React Strict Mode's mount → cleanup → remount
-    // cycle clears this timeout and only the second mount fires a request.
-    // No AbortController → no cancelled request in the Network tab.
     const initialTimer = window.setTimeout(() => {
-      fetchOrders();
+      refresh();
     }, 0);
 
-    const interval = setInterval(fetchOrders, POLL_INTERVAL);
+    const interval = setInterval(refresh, POLL_INTERVAL);
 
     const handleVisibility = () => {
-      if (!document.hidden) fetchOrders();
+      if (!document.hidden) refresh();
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
@@ -61,7 +63,7 @@ export function useOrderPolling() {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [fetchOrders]);
+  }, [refresh]);
 
-  return { isLoading, error, refetch: fetchOrders };
+  return { inProgressOrders, readyOrders, isLoading, error, refetch: refresh };
 }
