@@ -113,10 +113,11 @@ export default function DesignSettingsPage() {
               onChange={(e) => updateSettings({ textScale: Number(e.target.value) / 100 })}
               className="w-full accent-shopbox-accent"
             />
-            <div className="flex justify-between text-xs text-shopbox-muted mt-1">
-              <span>70%</span>
-              <span>100%</span>
-              <span>150%</span>
+            <div className="relative h-4 text-xs text-shopbox-muted mt-1">
+              <span className="absolute left-0">70%</span>
+              {/* 100 sits at (100-70)/(150-70) = 37.5% of the track */}
+              <span className="absolute left-[37.5%] -translate-x-1/2">100%</span>
+              <span className="absolute right-0">150%</span>
             </div>
           </div>
           <p className="text-xs text-shopbox-muted mt-3">

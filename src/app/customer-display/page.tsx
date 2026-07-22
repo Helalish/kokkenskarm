@@ -47,7 +47,7 @@ function OrderNumberTile({
 
 export default function CustomerDisplayPage() {
   const { inProgressOrders, readyOrders, isLoading } = useCustomerDisplayPolling();
-  const { soundEnabled } = useSettingsStore();
+  const soundEnabled = useSettingsStore((s) => s.remote?.soundEnabled ?? false);
   const t = useT();
   const [recentlyReady, setRecentlyReady] = useState<Set<string>>(new Set());
   const prevReadyIdsRef = useRef<Set<string> | null>(null);

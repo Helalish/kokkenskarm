@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
 import { usePipeline } from "@/hooks/use-pipeline";
-import { useStationStore } from "@/stores/station-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { filterOrdersByStation } from "@/lib/category-filter";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useOrderPolling } from "@/hooks/use-order-polling";
 import { useT } from "@/hooks/use-t";
@@ -18,8 +16,10 @@ import { KdsHeader } from "@/components/kds-header";
 export default function KdsPage() {
   const { orders, dismissOrder } = useOrdersStore();
   const { stages } = usePipeline();
-  const { getActiveStation } = useStationStore();
-  const { soundEnabled, viewMode, autoDismissReadySeconds } = useSettingsStore();
+  const viewMode = useSettingsStore((s) => s.viewMode);
+  const remote = useSettingsStore((s) => s.remote);
+  const soundEnabled = remote?.soundEnabled ?? false;
+  const autoDismissReadySeconds = remote?.autoDismissReadySeconds ?? 0;
   const t = useT();
   const [activeStageFilter, setActiveStageFilter] = useState<string | null>(null);
   const prevOrderCountRef = useRef(orders.length);
@@ -56,14 +56,10 @@ export default function KdsPage() {
     return () => clearInterval(interval);
   }, [autoDismissReadySeconds, stages, orders, dismissOrder]);
 
-  // Apply filters
-  const activeStation = getActiveStation();
-  let filteredOrders = filterOrdersByStation(orders, activeStation);
-  if (activeStation?.lockedStageId) {
-    filteredOrders = filteredOrders.filter((o) => o.currentStageId === activeStation.lockedStageId);
-  } else if (activeStageFilter && viewMode !== "kanban") {
-    filteredOrders = filteredOrders.filter((o) => o.currentStageId === activeStageFilter);
-  }
+  const filteredOrders =
+    activeStageFilter && viewMode !== "kanban"
+      ? orders.filter((o) => o.currentStageId === activeStageFilter)
+      : orders;
 
   if (isLoading) {
     return (
@@ -89,11 +85,11 @@ export default function KdsPage() {
         />
       )}
       {viewMode === "kanban" ? (
-        <KanbanView orders={filteredOrders} activeStation={activeStation} />
+        <KanbanView orders={filteredOrders} />
       ) : viewMode === "summary" ? (
-        <SummaryView orders={filteredOrders} activeStation={activeStation} />
+        <SummaryView orders={filteredOrders} />
       ) : (
-        <OrderGrid orders={filteredOrders} activeStation={activeStation} />
+        <OrderGrid orders={filteredOrders} />
       )}
     </div>
   );

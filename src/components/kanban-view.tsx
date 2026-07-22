@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { Order } from "@/types/order";
-import type { StationConfig } from "@/types/station";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -13,12 +12,12 @@ import { OrderCardExpanded } from "./order-card-expanded";
 
 interface KanbanViewProps {
   orders: Order[];
-  activeStation?: StationConfig | null;
 }
 
-export function KanbanView({ orders, activeStation }: KanbanViewProps) {
+export function KanbanView({ orders }: KanbanViewProps) {
   const { stages } = usePipelineStore();
-  const { sortOrder, smsEnabled } = useSettingsStore();
+  const sortOrder = useSettingsStore((s) => s.sortOrder);
+  const smsEnabled = useSettingsStore((s) => s.remote?.smsEnabled ?? false);
   const { updateOrderStatus } = useOrdersStore();
   const t = useT();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
@@ -145,7 +144,6 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
                   >
                     <OrderCard
                       order={order}
-                      activeStation={activeStation}
                       viewMode="kanban"
                       onKanbanClick={() => handleKanbanClick(order)}
                       onKanbanBack={!isFirstStage ? () => handleKanbanBack(order) : undefined}

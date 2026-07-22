@@ -16,10 +16,6 @@ export type KdsApiStatus = (typeof KDS_API_STATUSES)[number];
 export const KDS_STAGE_IDS = ["incoming", "in_progress", "ready"] as const;
 export type KdsStageId = (typeof KDS_STAGE_IDS)[number];
 
-export function isKdsApiStatus(value: string): value is KdsApiStatus {
-  return (KDS_API_STATUSES as readonly string[]).includes(value);
-}
-
 export function isKdsStageId(id: string): id is KdsStageId {
   return (KDS_STAGE_IDS as readonly string[]).includes(id);
 }

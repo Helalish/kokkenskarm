@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useOrdersStore } from "@/stores/orders-store";
-import { useStationStore } from "@/stores/station-store";
 import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useSmsLogStore } from "@/stores/sms-log-store";
@@ -14,9 +13,13 @@ import { cn } from "@/lib/cn";
 
 export function KdsHeader() {
   const { undoDismiss, dismissedOrders } = useOrdersStore();
-  const { stations, activeStationId, setActiveStation } = useStationStore();
   const { preOrders } = usePreOrdersStore();
-  const { sortOrder, soundEnabled, viewMode, updateSettings } = useSettingsStore();
+  const viewMode = useSettingsStore((s) => s.viewMode);
+  const sortOrder = useSettingsStore((s) => s.sortOrder);
+  const remote = useSettingsStore((s) => s.remote);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const saveToShopbox = useSettingsStore((s) => s.saveToShopbox);
+  const soundEnabled = remote?.soundEnabled ?? false;
   const { entries } = useSmsLogStore();
   const [showSmsLog, setShowSmsLog] = useState(false);
   const smsWrapperRef = useRef<HTMLDivElement>(null);
@@ -45,36 +48,6 @@ export function KdsHeader() {
     <header className="flex items-center justify-between px-4 py-2 bg-shopbox-primary border-b border-shopbox-border">
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-bold text-shopbox-text">{t("header.title")}</h1>
-
-        {stations.length > 0 && (
-          <div className="flex items-center gap-1 ml-2">
-            <button
-              className={cn(
-                "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
-                activeStationId === null
-                  ? "bg-shopbox-accent text-white"
-                  : "text-shopbox-text-secondary hover:bg-shopbox-card"
-              )}
-              onClick={() => setActiveStation(null)}
-            >
-              {t("header.stations.all")}
-            </button>
-            {stations.map((station) => (
-              <button
-                key={station.id}
-                className={cn(
-                  "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
-                  activeStationId === station.id
-                    ? "bg-shopbox-accent text-white"
-                    : "text-shopbox-text-secondary hover:bg-shopbox-card"
-                )}
-                onClick={() => setActiveStation(station.id)}
-              >
-                {station.name}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -100,7 +73,7 @@ export function KdsHeader() {
                 : t("header.view.summary")}
           </button>
 
-        {/* Sort toggle */}
+        {/* Sort toggle — local UI only, not saved to Shopbox */}
         <button
           className="rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary hover:bg-shopbox-card-hover transition-colors"
           onClick={() =>
@@ -113,7 +86,7 @@ export function KdsHeader() {
           {sortOrder === "oldest" ? t("header.sort.oldest") : t("header.sort.newest")}
         </button>
 
-        {/* Sound toggle */}
+        {/* Sound toggle — persists to Shopbox */}
         <button
           className={cn(
             "rounded-lg px-2.5 py-1.5 text-sm transition-colors",
@@ -121,7 +94,11 @@ export function KdsHeader() {
               ? "bg-shopbox-card text-shopbox-accent hover:bg-shopbox-card-hover"
               : "bg-shopbox-card text-shopbox-muted hover:bg-shopbox-card-hover"
           )}
-          onClick={() => updateSettings({ soundEnabled: !soundEnabled })}
+          onClick={() => {
+            const next = !soundEnabled;
+            updateSettings({ soundEnabled: next });
+            void saveToShopbox({ soundEnabled: next });
+          }}
           title={soundEnabled ? t("header.sound.onTitle") : t("header.sound.offTitle")}
         >
           {soundEnabled ? "🔔" : "🔕"}

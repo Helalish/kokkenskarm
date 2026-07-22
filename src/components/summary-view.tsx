@@ -1,8 +1,6 @@
 "use client";
 
 import type { Order } from "@/types/order";
-import type { StationConfig } from "@/types/station";
-import { getStationItems } from "@/lib/category-filter";
 import { useT } from "@/hooks/use-t";
 
 interface SummaryItem {
@@ -13,15 +11,11 @@ interface SummaryItem {
   doneQty: number;
 }
 
-function aggregateItems(orders: Order[], activeStation: StationConfig | null): Map<string, SummaryItem> {
+function aggregateItems(orders: Order[]): Map<string, SummaryItem> {
   const map = new Map<string, SummaryItem>();
 
   for (const order of orders) {
-    const stationItems = activeStation
-      ? getStationItems(order, activeStation).map((si) => si.item)
-      : order.items;
-
-    for (const item of stationItems) {
+    for (const item of order.items) {
       const variant = item.variants.length > 0 ? item.variants[0] : "";
       const key = `${item.name}||${variant}`;
 
@@ -56,12 +50,11 @@ function groupByCategory(items: SummaryItem[]): Map<string, SummaryItem[]> {
 
 interface SummaryViewProps {
   orders: Order[];
-  activeStation: StationConfig | null;
 }
 
-export function SummaryView({ orders, activeStation }: SummaryViewProps) {
+export function SummaryView({ orders }: SummaryViewProps) {
   const t = useT();
-  const aggregated = aggregateItems(orders, activeStation);
+  const aggregated = aggregateItems(orders);
   const allItems = Array.from(aggregated.values()).sort((a, b) => b.totalQty - a.totalQty);
   const categories = groupByCategory(allItems);
 

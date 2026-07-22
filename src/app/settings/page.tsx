@@ -1,13 +1,71 @@
 "use client";
 
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
+import type { RemoteSettings } from "@/types/settings";
+
+type SortOrder = "oldest" | "newest";
 
 export default function SettingsPage() {
   const settings = useSettingsStore();
   const t = useT();
+  const loadedRef = useRef(false);
+  
+  const [draft, setDraft] = useState<Partial<RemoteSettings>>({});
+  const [sortDraft, setSortDraft] = useState<SortOrder | null>(null);
+
+  useEffect(() => {
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      void settings.loadFromShopbox();
+    }
+  }, [settings]);
+
+  // Show the form as soon as we have settings (cache or network).
+  const remote = settings.remote;
+  const showForm = remote !== null;
+
+  const hasChanges = useMemo(() => {
+    if (!remote) return false;
+    const remoteChanged = Object.keys(draft).some((key) => {
+      const k = key as keyof RemoteSettings;
+      return draft[k] !== remote[k];
+    });
+    const sortChanged = sortDraft !== null && sortDraft !== settings.sortOrder;
+    return remoteChanged || sortChanged;
+  }, [draft, remote, sortDraft, settings.sortOrder]);
+
+  const updateDraft = <K extends keyof RemoteSettings>(key: K, value: RemoteSettings[K]) => {
+    setDraft((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const getValue = <K extends keyof RemoteSettings>(key: K): RemoteSettings[K] => {
+    return (draft[key] !== undefined ? draft[key]! : remote![key]);
+  };
+
+  const getSortOrder = (): SortOrder => sortDraft ?? settings.sortOrder;
+
+  const handleSave = async () => {
+    const updates: Partial<RemoteSettings> = { ...draft };
+    if (sortDraft !== null) {
+      updates.orderSorting = sortDraft === "newest" ? "newest_first" : "oldest_first";
+      settings.updateSettings({ sortOrder: sortDraft });
+    }
+
+    const success = await settings.saveToShopbox(updates);
+    if (success) {
+      setDraft({});
+      setSortDraft(null);
+    }
+  };
+
+  const handleDiscard = () => {
+    setDraft({});
+    setSortDraft(null);
+  };
 
   return (
     <div className="min-h-screen bg-shopbox-surface p-6">
@@ -18,12 +76,24 @@ export default function SettingsPage() {
             <LanguageToggle />
             <Link
               href="/kds"
-              className="rounded-lg bg-shopbox-accent px-4 py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 transition-colors"
+              className="rounded-lg bg-shopbox-card border border-shopbox-border px-4 py-2 text-sm font-medium text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
             >
               {t("settings.backToKds")}
             </Link>
           </div>
         </div>
+
+        {!showForm ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="text-shopbox-text-secondary">{t("settings.loading")}</div>
+          </div>
+        ) : (
+          <>
+        {settings.error && (
+          <div className="mb-6 rounded-lg bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-400">
+            {settings.error}
+          </div>
+        )}
 
         {/* Display */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
@@ -32,77 +102,31 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                {t("settings.columns", { count: settings.gridColumns })}
-              </label>
-              <input
-                type="range"
-                min={2}
-                max={6}
-                value={settings.gridColumns}
-                onChange={(e) => settings.updateSettings({ gridColumns: Number(e.target.value) })}
-                className="w-full accent-shopbox-accent"
-              />
-              <div className="flex justify-between text-xs text-shopbox-muted mt-1">
-                <span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm text-shopbox-text-secondary mb-2">
-                {t("settings.textScale", { percent: (settings.textScale * 100).toFixed(0) })}
-              </label>
-              <input
-                type="range"
-                min={80}
-                max={150}
-                value={settings.textScale * 100}
-                onChange={(e) => settings.updateSettings({ textScale: Number(e.target.value) / 100 })}
-                className="w-full accent-shopbox-accent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-shopbox-text-secondary mb-2">
                 {t("settings.sorting")}
               </label>
               <div className="flex gap-2">
                 <button
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    settings.sortOrder === "oldest"
+                    getSortOrder() === "oldest"
                       ? "bg-shopbox-accent text-white"
                       : "bg-shopbox-surface text-shopbox-text-secondary hover:bg-shopbox-card-hover"
                   }`}
-                  onClick={() => settings.updateSettings({ sortOrder: "oldest" })}
+                  onClick={() => setSortDraft("oldest")}
                 >
                   {t("header.sort.oldestTitle")}
                 </button>
                 <button
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    settings.sortOrder === "newest"
+                    getSortOrder() === "newest"
                       ? "bg-shopbox-accent text-white"
                       : "bg-shopbox-surface text-shopbox-text-secondary hover:bg-shopbox-card-hover"
                   }`}
-                  onClick={() => settings.updateSettings({ sortOrder: "newest" })}
+                  onClick={() => setSortDraft("newest")}
                 >
                   {t("header.sort.newestTitle")}
                 </button>
               </div>
             </div>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.scrollableCards}
-                onChange={(e) => settings.updateSettings({ scrollableCards: e.target.checked })}
-                className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
-              />
-              <div>
-                <span className="text-sm font-medium">{t("settings.scrollableCards")}</span>
-                <p className="text-xs text-shopbox-muted mt-0.5">
-                  {t("settings.scrollableCards.helper")}
-                </p>
-              </div>
-            </label>
           </div>
         </section>
 
@@ -113,49 +137,53 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                {t("settings.timer.warning", { min: Math.floor(settings.timerWarningSeconds / 60) })}
+                {t("settings.timer.warning", { min: Math.floor(getValue("timerWarningSeconds") / 60) })}
               </label>
               <input
                 type="range"
                 min={60}
                 max={900}
                 step={30}
-                value={settings.timerWarningSeconds}
-                onChange={(e) => settings.updateSettings({ timerWarningSeconds: Number(e.target.value) })}
+                value={getValue("timerWarningSeconds")}
+                onChange={(e) => updateDraft("timerWarningSeconds", Number(e.target.value))}
                 className="w-full accent-shopbox-warning"
               />
             </div>
 
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                {t("settings.timer.critical", { min: Math.floor(settings.timerCriticalSeconds / 60) })}
+                {t("settings.timer.critical", { min: Math.floor(getValue("timerCriticalSeconds") / 60) })}
               </label>
               <input
                 type="range"
                 min={120}
                 max={1800}
                 step={30}
-                value={settings.timerCriticalSeconds}
-                onChange={(e) => settings.updateSettings({ timerCriticalSeconds: Number(e.target.value) })}
+                value={getValue("timerCriticalSeconds")}
+                onChange={(e) => updateDraft("timerCriticalSeconds", Number(e.target.value))}
                 className="w-full accent-shopbox-critical"
               />
             </div>
 
             <div>
               <label className="block text-sm text-shopbox-text-secondary mb-2">
-                {t("settings.timer.autoDismiss", { value: settings.autoDismissReadySeconds === 0 ? t("settings.timer.disabled") : `${Math.floor(settings.autoDismissReadySeconds / 60)} min` })}
+                {t("settings.timer.autoDismiss", { value: getValue("autoDismissReadySeconds") === 0 ? t("settings.timer.disabled") : `${Math.floor(getValue("autoDismissReadySeconds") / 60)} min` })}
               </label>
               <input
                 type="range"
                 min={0}
                 max={600}
-                step={30}
-                value={settings.autoDismissReadySeconds}
-                onChange={(e) => settings.updateSettings({ autoDismissReadySeconds: Number(e.target.value) })}
+                step={60}
+                value={getValue("autoDismissReadySeconds")}
+                onChange={(e) => updateDraft("autoDismissReadySeconds", Number(e.target.value))}
                 className="w-full accent-shopbox-accent"
               />
-              <div className="flex justify-between text-xs text-shopbox-muted mt-1">
-                <span>{t("settings.timer.off")}</span><span>2 min</span><span>5 min</span><span>10 min</span>
+              <div className="relative h-4 text-xs text-shopbox-muted mt-1">
+                <span className="absolute left-0">{t("settings.timer.off")}</span>
+                {/* Positions match 0–600s: 2min=20%, 5min=50%, 10min=100% */}
+                <span className="absolute left-[20%] -translate-x-1/2">2 min</span>
+                <span className="absolute left-1/2 -translate-x-1/2">5 min</span>
+                <span className="absolute right-0">10 min</span>
               </div>
               <p className="text-xs text-shopbox-muted mt-1">
                 {t("settings.timer.helper")}
@@ -171,8 +199,8 @@ export default function SettingsPage() {
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={settings.showItemCheckmarks}
-                onChange={(e) => settings.updateSettings({ showItemCheckmarks: e.target.checked })}
+                checked={getValue("showItemCheckmarks")}
+                onChange={(e) => updateDraft("showItemCheckmarks", e.target.checked)}
                 className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
               />
               <div>
@@ -183,11 +211,11 @@ export default function SettingsPage() {
               </div>
             </label>
 
-            <label className={`flex items-start gap-3 cursor-pointer ${!settings.showItemCheckmarks ? "opacity-40 pointer-events-none" : ""}`}>
+            <label className={`flex items-start gap-3 cursor-pointer ${!getValue("showItemCheckmarks") ? "opacity-40 pointer-events-none" : ""}`}>
               <input
                 type="checkbox"
-                checked={settings.autoAdvanceWhenAllDone}
-                onChange={(e) => settings.updateSettings({ autoAdvanceWhenAllDone: e.target.checked })}
+                checked={getValue("autoAdvanceWhenAllDone")}
+                onChange={(e) => updateDraft("autoAdvanceWhenAllDone", e.target.checked)}
                 className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
               />
               <div>
@@ -206,8 +234,8 @@ export default function SettingsPage() {
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              checked={settings.soundEnabled}
-              onChange={(e) => settings.updateSettings({ soundEnabled: e.target.checked })}
+              checked={getValue("soundEnabled")}
+              onChange={(e) => updateDraft("soundEnabled", e.target.checked)}
               className="h-5 w-5 rounded accent-shopbox-accent"
             />
             <span className="text-sm">{t("settings.sound.enable")}</span>
@@ -220,43 +248,61 @@ export default function SettingsPage() {
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
-              checked={settings.smsEnabled}
-              onChange={(e) => settings.updateSettings({ smsEnabled: e.target.checked })}
+              checked={getValue("smsEnabled")}
+              onChange={(e) => updateDraft("smsEnabled", e.target.checked)}
               className="h-5 w-5 rounded accent-shopbox-accent mt-0.5"
             />
             <div>
               <span className="text-sm font-medium">{t("settings.sms.enable")}</span>
               <p className="text-xs text-shopbox-muted mt-0.5">
-                {t("settings.sms.helperDemo")}
+                {t("settings.sms.helper")}
               </p>
             </div>
           </label>
         </section>
 
-        {/* Configuration links */}
-        <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
+        {/* Configuration */}
+        <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("settings.configuration")}</h2>
-          <div className="space-y-2">
-            <Link
-              href="/settings/pipeline"
-              className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
-            >
-              {t("settings.pipeline")}
-            </Link>
-            <Link
-              href="/settings/stations"
-              className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
-            >
-              {t("settings.stations")}
-            </Link>
-            <Link
-              href="/settings/design"
-              className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
-            >
-              {t("settings.design")}
-            </Link>
-          </div>
+          <Link
+            href="/settings/design"
+            className="block rounded-lg bg-shopbox-surface p-3 text-sm hover:bg-shopbox-card-hover transition-colors"
+          >
+            {t("settings.design")}
+          </Link>
         </section>
+
+        {/* Save bar */}
+        {hasChanges && (
+          <div className="fixed bottom-0 left-0 right-0 bg-shopbox-primary border-t border-shopbox-border p-4 safe-area-bottom">
+            <div className="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+              <span className="text-sm text-shopbox-text-secondary hidden sm:block">
+                {t("settings.unsavedChanges")}
+              </span>
+              <div className="flex gap-3 w-full sm:w-auto">
+                <button
+                  onClick={handleDiscard}
+                  disabled={settings.isSaving}
+                  className="flex-1 sm:flex-none rounded-lg px-4 py-3 sm:py-2 text-sm font-medium text-shopbox-text-secondary bg-shopbox-surface hover:bg-shopbox-card-hover transition-colors disabled:opacity-50"
+                >
+                  {t("settings.discard")}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={settings.isSaving}
+                  className="flex-1 sm:flex-none rounded-lg bg-shopbox-accent px-6 py-3 sm:py-2 text-sm font-medium text-white hover:bg-shopbox-accent/80 transition-colors disabled:opacity-50"
+                >
+                  {settings.isSaving ? t("settings.saving") : t("settings.save")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom padding when save bar is visible */}
+        {hasChanges && <div className="h-20" />}
+          </>
+        )}
       </div>
     </div>
   );

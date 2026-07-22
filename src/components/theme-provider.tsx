@@ -6,7 +6,10 @@ import { useSettingsStore } from "@/stores/settings-store";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const language = useLanguageStore((s) => s.language);
-  const { theme, textScale } = useSettingsStore();
+  const theme = useSettingsStore((s) => s.theme);
+  const textScale = useSettingsStore((s) => s.textScale);
+  const loadFromShopbox = useSettingsStore((s) => s.loadFromShopbox);
+  const hasHydrated = useSettingsStore((s) => s.hasHydrated);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -33,6 +36,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.style.fontSize = "";
     };
   }, [textScale]);
+
+  // After localStorage rehydrate, refresh settings from Shopbox.
+  // Cached values are used immediately so KDS can render correctly.
+  useEffect(() => {
+    if (!hasHydrated) return;
+    void loadFromShopbox();
+  }, [hasHydrated, loadFromShopbox]);
 
   return <>{children}</>;
 }

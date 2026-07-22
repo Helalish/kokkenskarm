@@ -11,9 +11,6 @@ interface OrdersState {
   dismissedOrders: Order[];
 
   addOrder: (order: Order) => void;
-  removeOrder: (id: string) => void;
-  advanceStage: (orderId: string, nextStageId: string) => void;
-  completeOrder: (orderId: string) => void;
   toggleItemDone: (orderId: string, itemId: string) => void;
   markAllItemsDone: (orderId: string) => void;
   acknowledgeChanges: (orderId: string) => void;
@@ -30,30 +27,6 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
 
   addOrder: (order) => {
     set((state) => ({ orders: [...state.orders, order] }));
-  },
-
-  removeOrder: (id) => {
-    set((state) => ({ orders: state.orders.filter((o) => o.id !== id) }));
-  },
-
-  advanceStage: (orderId, nextStageId) => {
-    set((state) => ({
-      orders: state.orders.map((o) =>
-        o.id === orderId
-          ? { ...o, currentStageId: nextStageId, stageEnteredAt: new Date().toISOString() }
-          : o
-      ),
-    }));
-  },
-
-  completeOrder: (orderId) => {
-    set((state) => ({
-      orders: state.orders.map((o) =>
-        o.id === orderId
-          ? { ...o, completedAt: new Date().toISOString() }
-          : o
-      ),
-    }));
   },
 
   toggleItemDone: (orderId, itemId) => {

@@ -20,7 +20,10 @@ interface OrderCardExpandedProps {
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const { updateOrderStatus, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
-  const { timerWarningSeconds, timerCriticalSeconds, smsEnabled } = useSettingsStore();
+  const remote = useSettingsStore((s) => s.remote);
+  const timerWarningSeconds = remote?.timerWarningSeconds ?? 0;
+  const timerCriticalSeconds = remote?.timerCriticalSeconds ?? 0;
+  const smsEnabled = remote?.smsEnabled ?? false;
   const t = useT();
   const { formatted, status } = useOrderTimer(
     order.createdAt,
@@ -239,14 +242,14 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
         <div className="flex items-center gap-4 border-t border-sb-border-tertiary px-6 py-3.5">
           <button
             onClick={handleRemove}
-            className="flex h-[52px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#F04438] bg-[#F04438]/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-[#F04438]/20"
+            className="flex h-13 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#F04438] bg-[#F04438]/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-[#F04438]/20"
           >
             ✕ {t("expanded.remove")}
           </button>
           {prevStageId && (
             <button
               onClick={handleMoveBack}
-              className="flex h-[52px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
+              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
             >
               {nextStageId ? t("expanded.moveBack") : t("expanded.goBack")}
             </button>
@@ -254,7 +257,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           {nextStageId && nextStageId !== terminalStageId && (
             <button
               onClick={() => handleMoveToStage(nextStageId)}
-              className="flex h-[52px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
+              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
             >
               {t("expanded.moveTo", { next: nextStage?.name ?? "" })}
             </button>
@@ -262,7 +265,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           {nextStageId && terminalStageId && (
             <button
               onClick={() => handleMoveToStage(terminalStageId)}
-              className="flex h-[52px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-[#00AE66] bg-[#00AE66] px-4 text-sm font-semibold leading-snug text-[#F0FDF6] transition-colors hover:bg-[#00AE66]/90"
+              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-[#00AE66] bg-[#00AE66] px-4 text-sm font-semibold leading-snug text-[#F0FDF6] transition-colors hover:bg-[#00AE66]/90"
             >
               {sortedStages[sortedStages.length - 1]?.name}
             </button>

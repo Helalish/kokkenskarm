@@ -10,7 +10,7 @@ import type { Order } from "@/types/order";
 export function useOrderActions() {
   const { updateOrderStatus } = useOrdersStore();
   const { stages, getNextStageId } = usePipelineStore();
-  const { smsEnabled } = useSettingsStore();
+  const smsEnabled = useSettingsStore((s) => s.remote?.smsEnabled ?? false);
 
   const advanceWithSms = useCallback(
     (order: Order) => {

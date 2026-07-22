@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
-import type { StationConfig } from "@/types/station";
 import { useOrdersStore } from "@/stores/orders-store";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useOrderTimer } from "@/hooks/use-order-timer";
-import { getStationItems } from "@/lib/category-filter";
 import { OrderItemRow } from "./order-item-row";
 import { SourceBadge } from "./source-badge";
 import { PaymentBadge } from "./payment-badge";
@@ -18,7 +16,6 @@ import { cn } from "@/lib/cn";
 
 interface OrderCardProps {
   order: Order;
-  activeStation?: StationConfig | null;
   isSelected?: boolean;
   onSelect?: () => void;
   onExpand?: () => void;
@@ -30,7 +27,6 @@ interface OrderCardProps {
 
 export function OrderCard({
   order,
-  activeStation,
   isSelected,
   onSelect,
   onExpand,
@@ -39,7 +35,7 @@ export function OrderCard({
   onKanbanClick,
   onKanbanBack,
 }: OrderCardProps) {
-  const { updateOrderStatus, dismissOrder, toggleItemDone, acknowledgeChanges } = useOrdersStore();
+  const { updateOrderStatus, toggleItemDone, acknowledgeChanges } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
   const t = useT();
   const {
@@ -47,16 +43,19 @@ export function OrderCard({
     timerCriticalSeconds,
     showItemCheckmarks,
     autoAdvanceWhenAllDone,
-    scrollableCards,
     smsEnabled,
-  } = useSettingsStore();
+  } = useSettingsStore((s) => s.remote) ?? {
+    timerWarningSeconds: 0,
+    timerCriticalSeconds: 0,
+    showItemCheckmarks: false,
+    autoAdvanceWhenAllDone: false,
+    smsEnabled: false,
+  };
   const { formatted, status } = useOrderTimer(
     order.createdAt,
     timerWarningSeconds,
     timerCriticalSeconds
   );
-
-  const effectiveScrollableCards = scrollableCards;
 
   const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
   const currentStage = stages.find((s) => s.id === order.currentStageId);
@@ -196,28 +195,24 @@ export function OrderCard({
 
       {/* Items - only show if showItemCheckmarks is enabled */}
       {showItemCheckmarks ? (
-        <div className={cn("flex-1 px-3 py-1 space-y-0.5 text-sm", effectiveScrollableCards && "overflow-y-auto max-h-48")}>
-          {getStationItems(order, activeStation ?? null).map(({ item, dimmed }) => (
+        <div className="flex-1 px-3 py-1 space-y-0.5 text-sm">
+          {order.items.map((item) => (
             <OrderItemRow
               key={item.id}
               item={item}
-              dimmed={dimmed}
               onToggleDone={() => toggleItemDone(order.id, item.id)}
             />
           ))}
         </div>
       ) : (
-        <div className={cn("flex-1 px-3 py-1 space-y-0.5 text-sm", effectiveScrollableCards && "overflow-y-auto max-h-48")}>
-          {getStationItems(order, activeStation ?? null).map(({ item, dimmed }) => {
+        <div className="flex-1 px-3 py-1 space-y-0.5 text-sm">
+          {order.items.map((item) => {
             const isRemoved = item.changeStatus === "removed" || item.changeStatus === "refunded";
             const isAdded = item.changeStatus === "added";
             return (
               <div
                 key={item.id}
-                className={cn(
-                  "py-0.5 px-1",
-                  dimmed && "opacity-20"
-                )}
+                className="py-0.5 px-1"
               >
                 <div className="flex items-center gap-1.5">
                   {item.quantity > 1 && (

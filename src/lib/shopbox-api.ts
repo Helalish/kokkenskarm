@@ -1,5 +1,6 @@
 import type { Order } from "@/types/order";
 import type { KdsApiStatus } from "@/types/pipeline";
+import type { ShopboxKdsSettings } from "@/types/settings";
 import { transformShopboxOrders } from "@/services/shopbox-transformer";
 
 type ShopboxConfig = {
@@ -73,6 +74,22 @@ export async function updateProductPrepared(orderId: string, productId: string, 
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prepared }),
+  });
+}
+
+export async function fetchKdsSettings(): Promise<ShopboxKdsSettings> {
+  const url = buildShopboxUrl("/kds-settings");
+  const response = await shopboxFetch(url);
+  const data = await response.json();
+  return data.data ?? data;
+}
+
+export async function updateKdsSettings(settings: ShopboxKdsSettings): Promise<void> {
+  const url = buildShopboxUrl("/kds-settings");
+  await shopboxFetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
   });
 }
 

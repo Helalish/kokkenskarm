@@ -15,7 +15,6 @@ const da: Dict = {
   "header.undo": "↩ Fortryd ({count})",
   "header.customerDisplay": "Kundeskærm",
   "header.settings": "⚙ Indstillinger",
-  "header.stations.all": "Alle",
   "header.view.grid": "▥ Gitter",
   "header.view.kanban": "▤ Kanban",
   "header.view.summary": "Σ Sammendrag",
@@ -81,10 +80,6 @@ const da: Dict = {
   "settings.display": "Visning",
   "settings.timers": "Timer-tærskler",
   "settings.sorting": "Sortering",
-  "settings.columns": "Antal kolonner: {count}",
-  "settings.textScale": "Tekststørrelse: {percent}%",
-  "settings.scrollableCards": "Scroll i ordre-bokse",
-  "settings.scrollableCards.helper": "Begræns boksens højde og tilføj scroll. Slå fra for at vise hele ordren uden scroll.",
   "settings.timer.warning": "Advarsel efter: {min} min",
   "settings.timer.critical": "Kritisk efter: {min} min",
   "settings.timer.autoDismiss": "Fjern fra \"Klar\" efter: {value}",
@@ -103,28 +98,14 @@ const da: Dict = {
   "settings.sound.enable": "Afspil lyd ved nye ordrer",
   "settings.sms": "SMS-notifikationer",
   "settings.sms.enable": "Aktivér SMS",
-  "settings.sms.helperDemo":
-    "Send automatisk SMS til kunden når en ordre når \"Klar\".",
-  "settings.sms.previewLabel": "Besked ved \"Klar\"",
-  "settings.sms.previewNote": "Denne besked er fast og kan ikke redigeres.",
+  "settings.sms.helper": "Send automatisk SMS til kunden når en ordre når \"Klar\".",
+  "settings.loading": "Indlæser indstillinger...",
+  "settings.saving": "Gemmer...",
+  "settings.save": "Gem ændringer",
+  "settings.discard": "Fortryd",
+  "settings.unsavedChanges": "Du har ugemte ændringer",
   "settings.configuration": "Konfiguration",
-  "settings.pipeline": "Pipeline-stadier →",
-  "settings.stations": "Stationer →",
   "settings.design": "Design & farver →",
-
-  // Pipeline settings
-  "pipeline.title": "Pipeline-stadier",
-  "pipeline.back": "← Tilbage",
-  "pipeline.active": "Aktive stadier ({count})",
-  "pipeline.empty": "Ingen stadier oprettet endnu. Tilføj stadier nedenfor.",
-  "pipeline.sms": "SMS",
-  "pipeline.smsPlaceholder": "SMS-besked, f.eks. Din ordre #{orderNumber} er klar!",
-  "pipeline.smsHelp": "#{orderNumber} erstattes med ordrenummer",
-  "pipeline.addTitle": "Tilføj nyt stadie",
-  "pipeline.namePlaceholder": "Stadie-navn (f.eks. 'I gang')",
-  "pipeline.color": "Farve",
-  "pipeline.add": "Tilføj stadie",
-  "pipeline.flow": "Pipeline-flow",
 
   // Design settings
   "design.title": "Design",
@@ -184,11 +165,6 @@ const da: Dict = {
   "smsLog.empty": "Ingen SMS sendt endnu",
   "smsLog.order": "Ordre #{orderNumber}",
   "smsLog.resend": "Send igen",
-
-  // Stations placeholder
-  "stations.title": "Stationer",
-  "stations.back": "← Tilbage",
-  "stations.placeholder": "Stationskonfiguration er ikke tilgængelig endnu. Den nuværende KDS-release fokuserer på at hente ordrer og opdatere status fra Shopbox. Denne side udvides, når multi-station-filtrering bliver implementeret.",
 };
 
 const en: Dict = {
@@ -204,7 +180,6 @@ const en: Dict = {
   "header.undo": "↩ Undo ({count})",
   "header.customerDisplay": "Customer screen",
   "header.settings": "⚙ Settings",
-  "header.stations.all": "All",
   "header.view.grid": "▥ Grid",
   "header.view.kanban": "▤ Kanban",
   "header.view.summary": "Σ Summary",
@@ -270,10 +245,6 @@ const en: Dict = {
   "settings.display": "Display",
   "settings.timers": "Timer thresholds",
   "settings.sorting": "Sorting",
-  "settings.columns": "Columns: {count}",
-  "settings.textScale": "Text size: {percent}%",
-  "settings.scrollableCards": "Scrollable order cards",
-  "settings.scrollableCards.helper": "Limit card height and add scrolling. Disable to show the entire order without scrolling.",
   "settings.timer.warning": "Warning after: {min} min",
   "settings.timer.critical": "Critical after: {min} min",
   "settings.timer.autoDismiss": "Remove from \"Ready\" after: {value}",
@@ -292,28 +263,14 @@ const en: Dict = {
   "settings.sound.enable": "Play a sound for new orders",
   "settings.sms": "SMS notifications",
   "settings.sms.enable": "Enable SMS",
-  "settings.sms.helperDemo":
-    "Automatically send an SMS to the customer when an order reaches \"Ready\".",
-  "settings.sms.previewLabel": "Message at \"Ready\"",
-  "settings.sms.previewNote": "This message is fixed and cannot be edited.",
+  "settings.sms.helper": "Automatically send an SMS to the customer when an order reaches \"Ready\".",
+  "settings.loading": "Loading settings...",
+  "settings.saving": "Saving...",
+  "settings.save": "Save changes",
+  "settings.discard": "Discard",
+  "settings.unsavedChanges": "You have unsaved changes",
   "settings.configuration": "Configuration",
-  "settings.pipeline": "Pipeline stages →",
-  "settings.stations": "Stations →",
   "settings.design": "Design & colors →",
-
-  // Pipeline settings
-  "pipeline.title": "Pipeline stages",
-  "pipeline.back": "← Back",
-  "pipeline.active": "Active stages ({count})",
-  "pipeline.empty": "No stages created yet. Add stages below.",
-  "pipeline.sms": "SMS",
-  "pipeline.smsPlaceholder": "SMS message, e.g. Your order #{orderNumber} is ready!",
-  "pipeline.smsHelp": "#{orderNumber} is replaced with the order number",
-  "pipeline.addTitle": "Add new stage",
-  "pipeline.namePlaceholder": "Stage name (e.g. 'In progress')",
-  "pipeline.color": "Color",
-  "pipeline.add": "Add stage",
-  "pipeline.flow": "Pipeline flow",
 
   // Design settings
   "design.title": "Design",
@@ -373,11 +330,6 @@ const en: Dict = {
   "smsLog.empty": "No SMS sent yet",
   "smsLog.order": "Order #{orderNumber}",
   "smsLog.resend": "Send again",
-
-  // Stations placeholder
-  "stations.title": "Stations",
-  "stations.back": "← Back",
-  "stations.placeholder": "Station configuration is not available yet. The current KDS release focuses on listing orders and updating status from Shopbox. This page will be expanded when multi-station filtering is implemented.",
 };
 
 export const translations: Record<Language, Dict> = { da, en };

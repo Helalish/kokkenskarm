@@ -15,7 +15,6 @@ export function usePipeline() {
         if (i === -1 || i >= sorted.length - 1) return null;
         return sorted[i + 1].id;
       },
-      getFirstStageId: () => (sorted.length > 0 ? sorted[0].id : null),
     };
   }, [stages]);
 }

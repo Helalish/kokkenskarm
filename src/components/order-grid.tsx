@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
-import type { StationConfig } from "@/types/station";
 import { useSettingsStore } from "@/stores/settings-store";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { useT } from "@/hooks/use-t";
@@ -12,11 +11,10 @@ import { OrderCardExpanded } from "./order-card-expanded";
 
 interface OrderGridProps {
   orders: Order[];
-  activeStation?: StationConfig | null;
 }
 
-export function OrderGrid({ orders, activeStation }: OrderGridProps) {
-  const { sortOrder } = useSettingsStore();
+export function OrderGrid({ orders }: OrderGridProps) {
+  const sortOrder = useSettingsStore((s) => s.sortOrder);
   const { stages } = usePipeline();
   const t = useT();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
@@ -130,7 +128,6 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
           >
             <OrderCard
               order={order}
-              activeStation={activeStation}
               isSelected={effectiveSelectedId === order.id}
               onSelect={() => setSelectedOrderId(prev => prev === order.id ? null : order.id)}
               onExpand={() => setExpandedOrder(order)}

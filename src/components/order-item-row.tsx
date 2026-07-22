@@ -5,11 +5,10 @@ import { cn } from "@/lib/cn";
 
 interface OrderItemRowProps {
   item: OrderItem;
-  dimmed?: boolean;
   onToggleDone: () => void;
 }
 
-export function OrderItemRow({ item, dimmed, onToggleDone }: OrderItemRowProps) {
+export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
   const isRemoved = item.changeStatus === "removed" || item.changeStatus === "refunded";
   const isAdded = item.changeStatus === "added";
 
@@ -19,7 +18,6 @@ export function OrderItemRow({ item, dimmed, onToggleDone }: OrderItemRowProps) 
         "flex items-start gap-2 py-1 px-1 rounded transition-colors",
         !isRemoved && "cursor-pointer hover:bg-white/5",
         item.isDone && !isRemoved && "opacity-40",
-        dimmed && "opacity-20 pointer-events-none",
         isRemoved && "pointer-events-none"
       )}
       onClick={(e) => {
