@@ -5,7 +5,6 @@ import type { Order } from "@/types/order";
 import { usePipelineStore } from "@/stores/pipeline-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { sendOrderSms } from "@/services/sms-service";
 import { useT } from "@/hooks/use-t";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
@@ -17,7 +16,6 @@ interface KanbanViewProps {
 export function KanbanView({ orders }: KanbanViewProps) {
   const { stages } = usePipelineStore();
   const sortOrder = useSettingsStore((s) => s.sortOrder);
-  const smsEnabled = useSettingsStore((s) => s.remote?.smsEnabled ?? false);
   const { updateOrderStatus } = useOrdersStore();
   const t = useT();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
@@ -55,28 +53,8 @@ export function KanbanView({ orders }: KanbanViewProps) {
       if (idx < sortedStages.length - 1) {
         const nextStage = sortedStages[idx + 1];
         updateOrderStatus(order.id, nextStage.id);
-
-        if (
-          smsEnabled &&
-          nextStage.smsEnabled &&
-          nextStage.smsTemplate &&
-          order.customerInfo?.phone
-        ) {
-          const message = nextStage.smsTemplate.replace("#{orderNumber}", String(order.orderNumber));
-          sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
-        }
       } else {
         updateOrderStatus(order.id, "done");
-      }
-    },
-    [sortedStages, updateOrderStatus, smsEnabled]
-  );
-
-  const handleKanbanBack = useCallback(
-    (order: Order) => {
-      const idx = sortedStages.findIndex((s) => s.id === order.currentStageId);
-      if (idx > 0) {
-        updateOrderStatus(order.id, sortedStages[idx - 1].id);
       }
     },
     [sortedStages, updateOrderStatus]
@@ -106,12 +84,10 @@ export function KanbanView({ orders }: KanbanViewProps) {
   return (
     <>
       <div className="flex-1 flex overflow-hidden">
-        {sortedStages.map((stage, stageIndex) => {
+        {sortedStages.map((stage) => {
           const columnOrders = orders
             .filter((o) => o.currentStageId === stage.id)
             .sort(sortFn);
-          const isFirstStage = stageIndex === 0;
-
           return (
             <div
               key={stage.id}
@@ -146,7 +122,6 @@ export function KanbanView({ orders }: KanbanViewProps) {
                       order={order}
                       viewMode="kanban"
                       onKanbanClick={() => handleKanbanClick(order)}
-                      onKanbanBack={!isFirstStage ? () => handleKanbanBack(order) : undefined}
                       onExpand={() => setExpandedOrder(order)}
                     />
                   </div>

@@ -20,7 +20,7 @@ export function KdsHeader() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const saveToShopbox = useSettingsStore((s) => s.saveToShopbox);
   const soundEnabled = remote?.soundEnabled ?? false;
-  const { entries } = useSmsLogStore();
+  const loadHistory = useSmsLogStore((s) => s.loadHistory);
   const [showSmsLog, setShowSmsLog] = useState(false);
   const smsWrapperRef = useRef<HTMLDivElement>(null);
   const t = useT();
@@ -43,6 +43,11 @@ export function KdsHeader() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [showSmsLog]);
+
+  useEffect(() => {
+    if (!showSmsLog) return;
+    void loadHistory(10, { force: true });
+  }, [showSmsLog, loadHistory]);
 
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-shopbox-primary border-b border-shopbox-border">
@@ -111,7 +116,7 @@ export function KdsHeader() {
             onClick={() => setShowSmsLog((s) => !s)}
             title={t("header.smsLog.title")}
           >
-            {t("header.smsButton")} {entries.length > 0 && `(${entries.length})`}
+            {t("header.smsButton")}
           </button>
           {showSmsLog && <SmsLogPanel onClose={() => setShowSmsLog(false)} />}
         </div>

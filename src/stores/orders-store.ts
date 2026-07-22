@@ -26,7 +26,10 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
   dismissedOrders: [],
 
   addOrder: (order) => {
-    set((state) => ({ orders: [...state.orders, order] }));
+    set((state) => {
+      if (state.orders.some((o) => o.id === order.id)) return state;
+      return { orders: [...state.orders, order] };
+    });
   },
 
   toggleItemDone: (orderId, itemId) => {
@@ -132,14 +135,30 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     const dismissed = get().dismissedOrders;
     if (dismissed.length === 0) return null;
     const [restored, ...rest] = dismissed;
-    set((state) => ({
-      orders: [...state.orders, restored],
-      dismissedOrders: rest,
-    }));
+    set((state) => {
+      // Polling may already have restored this order — don't create a duplicate key.
+      if (state.orders.some((o) => o.id === restored.id)) {
+        return { dismissedOrders: rest };
+      }
+      return {
+        orders: [...state.orders, restored],
+        dismissedOrders: rest,
+      };
+    });
     return restored;
   },
 
-  setOrders: (orders) => set({ orders }),
+  setOrders: (orders) => {
+    // Keep first occurrence of each id so React keys stay unique.
+    const seen = new Set<string>();
+    const unique: Order[] = [];
+    for (const order of orders) {
+      if (seen.has(order.id)) continue;
+      seen.add(order.id);
+      unique.push(order);
+    }
+    set({ orders: unique });
+  },
 
   incrementSmsSent: (orderId) => {
     set((state) => ({
@@ -184,10 +203,21 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     } catch {
       // Rollback on failure
       if (isDone) {
-        set((state) => ({
-          orders: [...state.orders, { ...order, currentStageId: previousStageId }],
-          dismissedOrders: state.dismissedOrders.filter((o) => o.id !== orderId),
-        }));
+        set((state) => {
+          // Polling may already have put the order back — avoid duplicate keys.
+          if (state.orders.some((o) => o.id === orderId)) {
+            return {
+              orders: state.orders.map((o) =>
+                o.id === orderId ? { ...o, currentStageId: previousStageId } : o
+              ),
+              dismissedOrders: state.dismissedOrders.filter((o) => o.id !== orderId),
+            };
+          }
+          return {
+            orders: [...state.orders, { ...order, currentStageId: previousStageId }],
+            dismissedOrders: state.dismissedOrders.filter((o) => o.id !== orderId),
+          };
+        });
       } else {
         set((state) => ({
           orders: state.orders.map((o) =>

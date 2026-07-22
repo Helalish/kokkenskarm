@@ -5,7 +5,14 @@ import { isKdsStageId } from "@/types/pipeline";
 export function transformShopboxOrders(data: any): Order[] {
   const items = data?.data?.item ?? data?.data ?? [];
   const rawOrders = Array.isArray(items) ? items : [items];
-  return rawOrders.map(transformSingleOrder).filter((o): o is Order => o !== null);
+  const orders = rawOrders.map(transformSingleOrder).filter((o): o is Order => o !== null);
+  // Guard against duplicate uids from the API (React keys must be unique).
+  const seen = new Set<string>();
+  return orders.filter((o) => {
+    if (seen.has(o.id)) return false;
+    seen.add(o.id);
+    return true;
+  });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

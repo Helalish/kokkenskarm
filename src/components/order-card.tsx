@@ -10,7 +10,6 @@ import { OrderItemRow } from "./order-item-row";
 import { SourceBadge } from "./source-badge";
 import { PaymentBadge } from "./payment-badge";
 import { CustomerInfo } from "./customer-info";
-import { sendOrderSms } from "@/services/sms-service";
 import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
@@ -22,7 +21,6 @@ interface OrderCardProps {
   isNew?: boolean;
   viewMode?: "grid" | "kanban";
   onKanbanClick?: () => void;
-  onKanbanBack?: () => void;
 }
 
 export function OrderCard({
@@ -33,7 +31,6 @@ export function OrderCard({
   isNew,
   viewMode = "grid",
   onKanbanClick,
-  onKanbanBack,
 }: OrderCardProps) {
   const { updateOrderStatus, toggleItemDone, acknowledgeChanges } = useOrdersStore();
   const { getNextStageId, stages } = usePipeline();
@@ -43,13 +40,11 @@ export function OrderCard({
     timerCriticalSeconds,
     showItemCheckmarks,
     autoAdvanceWhenAllDone,
-    smsEnabled,
   } = useSettingsStore((s) => s.remote) ?? {
     timerWarningSeconds: 0,
     timerCriticalSeconds: 0,
     showItemCheckmarks: false,
     autoAdvanceWhenAllDone: false,
-    smsEnabled: false,
   };
   const { formatted, status } = useOrderTimer(
     order.createdAt,
@@ -57,36 +52,25 @@ export function OrderCard({
     timerCriticalSeconds
   );
 
-  const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
   const currentStage = stages.find((s) => s.id === order.currentStageId);
-  const currentIndex = sortedStages.findIndex((s) => s.id === order.currentStageId);
   const nextStageId = getNextStageId(order.currentStageId);
   const nextStage = nextStageId ? stages.find((s) => s.id === nextStageId) : null;
-  const prevStageId = currentIndex > 0 ? sortedStages[currentIndex - 1].id : null;
 
   const activeItems = order.items.filter((i) => i.changeStatus !== "removed" && i.changeStatus !== "refunded");
   const doneCount = activeItems.filter((i) => i.isDone).length;
   const totalCount = activeItems.length;
   const allDone = totalCount > 0 && doneCount === totalCount;
 
-  const triggerAutoSms = useCallback(() => {
-    if (smsEnabled && nextStage?.smsEnabled && nextStage.smsTemplate && order.customerInfo?.phone) {
-      const message = nextStage.smsTemplate.replace("#{orderNumber}", String(order.orderNumber));
-      sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
-    }
-  }, [smsEnabled, nextStage, order.customerInfo, order.orderNumber, order.id]);
-
   // Auto-advance when all items are done (stops at terminal stage — don't dismiss)
   const prevAllDoneRef = useRef(false);
   useEffect(() => {
     if (autoAdvanceWhenAllDone && showItemCheckmarks && allDone && !prevAllDoneRef.current) {
       if (nextStageId) {
-        triggerAutoSms();
         updateOrderStatus(order.id, nextStageId);
       }
     }
     prevAllDoneRef.current = allDone;
-  }, [allDone, autoAdvanceWhenAllDone, showItemCheckmarks, nextStageId, order.id, updateOrderStatus, triggerAutoSms]);
+  }, [allDone, autoAdvanceWhenAllDone, showItemCheckmarks, nextStageId, order.id, updateOrderStatus]);
 
   const handleClick = useCallback(() => {
     if (viewMode === "kanban") {
@@ -95,7 +79,6 @@ export function OrderCard({
     }
     if (isSelected) {
       if (nextStageId) {
-        triggerAutoSms();
         updateOrderStatus(order.id, nextStageId);
       } else {
         updateOrderStatus(order.id, "done");
@@ -103,7 +86,7 @@ export function OrderCard({
     } else {
       onSelect?.();
     }
-  }, [viewMode, isSelected, nextStageId, order.id, updateOrderStatus, onSelect, onKanbanClick, triggerAutoSms]);
+  }, [viewMode, isSelected, nextStageId, order.id, updateOrderStatus, onSelect, onKanbanClick]);
 
   return (
     <div
@@ -150,7 +133,6 @@ export function OrderCard({
         </div>
       </div>
 
-      {/* Changes banner — can be checked off / dismissed once reviewed */}
       {order.hasChanges && !order.isRefunded && (
         <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-shopbox-warning/15">
           <span className="text-xs font-bold uppercase tracking-wider text-shopbox-detail">
@@ -266,27 +248,6 @@ export function OrderCard({
       {/* Footer */}
       <div className="flex items-center justify-between px-3 py-2 border-t border-sb-border-tertiary text-xs text-shopbox-detail">
         <div className="flex items-center gap-1.5">
-          {viewMode === "kanban" && onKanbanBack ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onKanbanBack();
-              }}
-              className="rounded-md bg-shopbox-surface px-2 py-1 text-xs font-medium text-shopbox-text-secondary hover:text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
-            >
-              {t("card.back")}
-            </button>
-          ) : viewMode === "grid" && prevStageId ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                updateOrderStatus(order.id, prevStageId);
-              }}
-              className="rounded-md bg-shopbox-surface px-2 py-1 text-xs font-medium text-shopbox-text-secondary hover:text-shopbox-text hover:bg-shopbox-card-hover transition-colors"
-            >
-              {t("card.back")}
-            </button>
-          ) : null}
           <span className={cn(showItemCheckmarks && allDone && "text-shopbox-accent font-semibold")}>
             {showItemCheckmarks
               ? t("card.itemsDone", { done: doneCount, total: totalCount })
@@ -298,22 +259,6 @@ export function OrderCard({
             <span className="text-shopbox-detail italic truncate" title={order.notes}>
               📝 {order.notes}
             </span>
-          )}
-          {smsEnabled && order.customerInfo?.phone && currentStage?.smsTemplate && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const message = currentStage.smsTemplate!.replace(
-                  "#{orderNumber}",
-                  String(order.orderNumber)
-                );
-                sendOrderSms(order.customerInfo!.phone!, order.orderNumber, order.id, message);
-              }}
-              className="rounded-md bg-shopbox-accent/10 px-2 py-1 text-[10px] font-medium text-shopbox-accent hover:bg-shopbox-accent/20 transition-colors"
-              title={t("card.sendSms", { phone: order.customerInfo!.phone! })}
-            >
-              {(order.smsSentCount ?? 0) > 0 ? `${t("header.smsButton")} (${order.smsSentCount})` : t("header.smsButton")}
-            </button>
           )}
         </div>
       </div>

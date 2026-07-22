@@ -7,7 +7,6 @@ import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useT } from "@/hooks/use-t";
 import { useOrderTimer } from "@/hooks/use-order-timer";
-import { sendOrderSms } from "@/services/sms-service";
 import { SourceBadge } from "./source-badge";
 import { CustomerInfo } from "./customer-info";
 import { cn } from "@/lib/cn";
@@ -23,7 +22,6 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const remote = useSettingsStore((s) => s.remote);
   const timerWarningSeconds = remote?.timerWarningSeconds ?? 0;
   const timerCriticalSeconds = remote?.timerCriticalSeconds ?? 0;
-  const smsEnabled = remote?.smsEnabled ?? false;
   const t = useT();
   const { formatted, status } = useOrderTimer(
     order.createdAt,
@@ -33,8 +31,6 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
 
   const currentStage = stages.find((s) => s.id === order.currentStageId);
   const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
-  const currentIndex = sortedStages.findIndex((s) => s.id === order.currentStageId);
-  const prevStageId = currentIndex > 0 ? sortedStages[currentIndex - 1].id : null;
   const nextStageId = getNextStageId(order.currentStageId);
   const nextStage = nextStageId ? stages.find((s) => s.id === nextStageId) : null;
   const terminalStageId = sortedStages.length > 0 ? sortedStages[sortedStages.length - 1].id : null;
@@ -51,28 +47,12 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const sendStageSms = useCallback(
-    (stageId: string) => {
-      const stage = stages.find((s) => s.id === stageId);
-      if (smsEnabled && stage?.smsEnabled && stage.smsTemplate && order.customerInfo?.phone) {
-        const message = stage.smsTemplate.replace("#{orderNumber}", String(order.orderNumber));
-        sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
-      }
-    },
-    [stages, smsEnabled, order.customerInfo, order.orderNumber, order.id]
-  );
-
   const handleMoveToStage = useCallback(
     (stageId: string) => {
-      sendStageSms(stageId);
       updateOrderStatus(order.id, stageId);
     },
-    [sendStageSms, updateOrderStatus, order.id]
+    [updateOrderStatus, order.id]
   );
-
-  const handleMoveBack = useCallback(() => {
-    if (prevStageId) updateOrderStatus(order.id, prevStageId);
-  }, [prevStageId, updateOrderStatus, order.id]);
 
   const handleRemove = useCallback(() => {
     dismissOrder(order.id);
@@ -238,7 +218,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           </div>
         </div>
 
-        {/* Actions — context-dependent: remove · back · advance/ready */}
+        {/* Actions — remove · advance/ready */}
         <div className="flex items-center gap-4 border-t border-sb-border-tertiary px-6 py-3.5">
           <button
             onClick={handleRemove}
@@ -246,14 +226,6 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           >
             ✕ {t("expanded.remove")}
           </button>
-          {prevStageId && (
-            <button
-              onClick={handleMoveBack}
-              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
-            >
-              {nextStageId ? t("expanded.moveBack") : t("expanded.goBack")}
-            </button>
-          )}
           {nextStageId && nextStageId !== terminalStageId && (
             <button
               onClick={() => handleMoveToStage(nextStageId)}

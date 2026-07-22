@@ -31,7 +31,6 @@ const da: Dict = {
   "card.changes": "Ændringer i bestilling",
   "card.clickAgain": "Klik igen → {next}",
   "card.done": "Færdig",
-  "card.back": "← Tilbage",
   "card.itemsDone": "{done}/{total} færdig",
   "card.itemsCount": "{total} varer",
   "card.showDetails": "Vis detaljer",
@@ -52,8 +51,6 @@ const da: Dict = {
   "expanded.mod": "Ændringer",
   "expanded.ingredients": "Ingredienser",
   "expanded.moveTo": "Flyt til: {next}",
-  "expanded.moveBack": "← Flyt tilbage",
-  "expanded.goBack": "← Gå tilbage",
   "expanded.remove": "Fjern",
 
   // Grid empty state
@@ -196,7 +193,6 @@ const en: Dict = {
   "card.changes": "Order changes",
   "card.clickAgain": "Click again → {next}",
   "card.done": "Done",
-  "card.back": "← Back",
   "card.itemsDone": "{done}/{total} done",
   "card.itemsCount": "{total} items",
   "card.showDetails": "Show details",
@@ -217,8 +213,6 @@ const en: Dict = {
   "expanded.mod": "Modifiers",
   "expanded.ingredients": "Ingredients",
   "expanded.moveTo": "Move to: {next}",
-  "expanded.moveBack": "← Move back",
-  "expanded.goBack": "← Go back",
   "expanded.remove": "Remove",
 
   // Grid empty state

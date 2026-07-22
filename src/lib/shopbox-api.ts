@@ -1,6 +1,7 @@
 import type { Order } from "@/types/order";
 import type { KdsApiStatus } from "@/types/pipeline";
 import type { ShopboxKdsSettings } from "@/types/settings";
+import type { ShopboxSmsHistoryEntry } from "@/types/sms";
 import { transformShopboxOrders } from "@/services/shopbox-transformer";
 
 type ShopboxConfig = {
@@ -91,5 +92,12 @@ export async function updateKdsSettings(settings: ShopboxKdsSettings): Promise<v
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(settings),
   });
+}
+
+export async function fetchSmsHistory(limit = 10): Promise<ShopboxSmsHistoryEntry[]> {
+  const url = buildShopboxUrl("/kds/sms-history", { limit: String(limit) });
+  const response = await shopboxFetch(url);
+  const data = await response.json();
+  return (data?.data ?? data) as ShopboxSmsHistoryEntry[];
 }
 
