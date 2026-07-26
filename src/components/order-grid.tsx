@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
 import { useSettingsStore } from "@/stores/settings-store";
-import { usePipeline } from "@/hooks/use-pipeline";
+import { getStage } from "@/lib/pipeline";
 import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 import { OrderCard } from "./order-card";
@@ -15,7 +15,6 @@ interface OrderGridProps {
 
 export function OrderGrid({ orders }: OrderGridProps) {
   const sortOrder = useSettingsStore((s) => s.sortOrder);
-  const { stages } = usePipeline();
   const t = useT();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -59,7 +58,7 @@ export function OrderGrid({ orders }: OrderGridProps) {
     currentMap.forEach((stageId, orderId) => {
       const prevStageId = prevStageMapRef.current.get(orderId);
       if (prevStageId && prevStageId !== stageId) {
-        const stage = stages.find((s) => s.id === stageId);
+        const stage = getStage(stageId);
         if (stage) newAnimating.set(orderId, stage.color);
       }
     });
@@ -78,7 +77,7 @@ export function OrderGrid({ orders }: OrderGridProps) {
     }
 
     prevStageMapRef.current = currentMap;
-  }, [orders, stages]);
+  }, [orders]);
 
   const sortedOrders = [...orders].sort((a, b) => {
     const timeA = new Date(a.createdAt).getTime();

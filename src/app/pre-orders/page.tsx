@@ -6,10 +6,19 @@ import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { PreOrderCard } from "@/components/pre-order-card";
 import { OrderCardExpanded } from "@/components/order-card-expanded";
+import { AuthGuard } from "@/components/auth-guard";
 import type { Order } from "@/types/order";
 import { useT } from "@/hooks/use-t";
 
 export default function PreOrdersPage() {
+  return (
+    <AuthGuard>
+      <PreOrdersPageContent />
+    </AuthGuard>
+  );
+}
+
+function PreOrdersPageContent() {
   const t = useT();
   const { preOrders, removePreOrder, promoteMinutesBefore, setPromoteMinutesBefore } =
     usePreOrdersStore();

@@ -47,6 +47,17 @@ body {
   font-family: var(--font-lexend), sans-serif;
 }
 
+/* Keep dark theme when the browser autofills saved credentials */
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--shopbox-text) !important;
+  caret-color: var(--shopbox-text);
+  box-shadow: 0 0 0 1000px var(--shopbox-surface) inset !important;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
 /* Prevent text selection on order cards (kitchen environment) */
 .no-select {
   -webkit-user-select: none;

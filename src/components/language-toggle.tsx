@@ -19,7 +19,7 @@ export function LanguageToggle({ className }: { className?: string }) {
           key={l}
           onClick={() => setLanguage(l)}
           className={cn(
-            "px-2 py-1 transition-colors",
+            "cursor-pointer px-2 py-1 transition-colors",
             language === l
               ? "bg-shopbox-accent text-white"
               : "bg-shopbox-card text-shopbox-text-secondary hover:bg-shopbox-card-hover"

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipeline } from "@/hooks/use-pipeline";
+import { getNextStageId, getStage } from "@/lib/pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useOrderTimer } from "@/hooks/use-order-timer";
 import { OrderItemRow } from "./order-item-row";
@@ -33,7 +33,6 @@ export function OrderCard({
   onKanbanClick,
 }: OrderCardProps) {
   const { updateOrderStatus, toggleItemDone, acknowledgeChanges } = useOrdersStore();
-  const { getNextStageId, stages } = usePipeline();
   const t = useT();
   const {
     timerWarningSeconds,
@@ -52,16 +51,16 @@ export function OrderCard({
     timerCriticalSeconds
   );
 
-  const currentStage = stages.find((s) => s.id === order.currentStageId);
+  const currentStage = getStage(order.currentStageId);
   const nextStageId = getNextStageId(order.currentStageId);
-  const nextStage = nextStageId ? stages.find((s) => s.id === nextStageId) : null;
+  const nextStage = nextStageId ? getStage(nextStageId) : null;
 
   const activeItems = order.items.filter((i) => i.changeStatus !== "removed" && i.changeStatus !== "refunded");
   const doneCount = activeItems.filter((i) => i.isDone).length;
   const totalCount = activeItems.length;
   const allDone = totalCount > 0 && doneCount === totalCount;
 
-  // Auto-advance when all items are done (stops at terminal stage — don't dismiss)
+  // Auto-advance when all items are done (stops when there is no next stage)
   const prevAllDoneRef = useRef(false);
   useEffect(() => {
     if (autoAdvanceWhenAllDone && showItemCheckmarks && allDone && !prevAllDoneRef.current) {
@@ -72,7 +71,7 @@ export function OrderCard({
     prevAllDoneRef.current = allDone;
   }, [allDone, autoAdvanceWhenAllDone, showItemCheckmarks, nextStageId, order.id, updateOrderStatus]);
 
-  const handleClick = useCallback(() => {
+  function handleClick() {
     if (viewMode === "kanban") {
       onKanbanClick?.();
       return;
@@ -86,7 +85,7 @@ export function OrderCard({
     } else {
       onSelect?.();
     }
-  }, [viewMode, isSelected, nextStageId, order.id, updateOrderStatus, onSelect, onKanbanClick]);
+  }
 
   return (
     <div

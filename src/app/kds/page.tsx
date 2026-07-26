@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useOrderPolling } from "@/hooks/use-order-polling";
@@ -12,10 +11,18 @@ import { KanbanView } from "@/components/kanban-view";
 import { SummaryView } from "@/components/summary-view";
 import { PipelineBar } from "@/components/pipeline-bar";
 import { KdsHeader } from "@/components/kds-header";
+import { AuthGuard } from "@/components/auth-guard";
 
 export default function KdsPage() {
-  const { orders, dismissOrder } = useOrdersStore();
-  const { stages } = usePipeline();
+  return (
+    <AuthGuard>
+      <KdsPageContent />
+    </AuthGuard>
+  );
+}
+
+function KdsPageContent() {
+  const { orders, updateOrderStatus } = useOrdersStore();
   const viewMode = useSettingsStore((s) => s.viewMode);
   const remote = useSettingsStore((s) => s.remote);
   const soundEnabled = remote?.soundEnabled ?? false;
@@ -35,26 +42,24 @@ export default function KdsPage() {
     prevOrderCountRef.current = orders.length;
   }, [orders.length, isLoading, soundEnabled]);
 
-  // Auto-dismiss orders in terminal stage after configured time
+  // Auto-remove ready orders after the configured delay — tell Shopbox (status: done)
   useEffect(() => {
     if (autoDismissReadySeconds <= 0) return;
-    const terminalStageIds = new Set(stages.filter((s) => s.isTerminal).map((s) => s.id));
-    if (terminalStageIds.size === 0) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
       for (const order of orders) {
         if (
-          terminalStageIds.has(order.currentStageId) &&
+          order.currentStageId === "ready" &&
           order.stageEnteredAt &&
           now - new Date(order.stageEnteredAt).getTime() >= autoDismissReadySeconds * 1000
         ) {
-          dismissOrder(order.id);
+          void updateOrderStatus(order.id, "done");
         }
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [autoDismissReadySeconds, stages, orders, dismissOrder]);
+  }, [autoDismissReadySeconds, orders, updateOrderStatus]);
 
   const filteredOrders =
     activeStageFilter && viewMode !== "kanban"

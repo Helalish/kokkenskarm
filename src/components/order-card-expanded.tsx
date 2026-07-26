@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Order } from "@/types/order";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipeline } from "@/hooks/use-pipeline";
+import { PIPELINE_STAGES, getNextStageId, getStage } from "@/lib/pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useT } from "@/hooks/use-t";
 import { useOrderTimer } from "@/hooks/use-order-timer";
@@ -18,7 +18,6 @@ interface OrderCardExpandedProps {
 
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const { updateOrderStatus, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
-  const { getNextStageId, stages } = usePipeline();
   const remote = useSettingsStore((s) => s.remote);
   const timerWarningSeconds = remote?.timerWarningSeconds ?? 0;
   const timerCriticalSeconds = remote?.timerCriticalSeconds ?? 0;
@@ -29,11 +28,11 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
     timerCriticalSeconds
   );
 
-  const currentStage = stages.find((s) => s.id === order.currentStageId);
-  const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
+  const currentStage = getStage(order.currentStageId);
   const nextStageId = getNextStageId(order.currentStageId);
-  const nextStage = nextStageId ? stages.find((s) => s.id === nextStageId) : null;
-  const terminalStageId = sortedStages.length > 0 ? sortedStages[sortedStages.length - 1].id : null;
+  const nextStage = nextStageId ? getStage(nextStageId) : null;
+  const readyStage = PIPELINE_STAGES[PIPELINE_STAGES.length - 1];
+  const readyStageId = readyStage?.id ?? null;
   const doneCount = order.items.filter((i) => i.isDone).length;
   const totalCount = order.items.length;
   const [noteReviewed, setNoteReviewed] = useState(false);
@@ -226,7 +225,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           >
             ✕ {t("expanded.remove")}
           </button>
-          {nextStageId && nextStageId !== terminalStageId && (
+          {nextStageId && nextStageId !== readyStageId && (
             <button
               onClick={() => handleMoveToStage(nextStageId)}
               className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
@@ -234,12 +233,12 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
               {t("expanded.moveTo", { next: nextStage?.name ?? "" })}
             </button>
           )}
-          {nextStageId && terminalStageId && (
+          {nextStageId && readyStageId && (
             <button
-              onClick={() => handleMoveToStage(terminalStageId)}
+              onClick={() => handleMoveToStage(readyStageId)}
               className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-[#00AE66] bg-[#00AE66] px-4 text-sm font-semibold leading-snug text-[#F0FDF6] transition-colors hover:bg-[#00AE66]/90"
             >
-              {sortedStages[sortedStages.length - 1]?.name}
+              {readyStage.name}
             </button>
           )}
         </div>

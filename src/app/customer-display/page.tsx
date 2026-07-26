@@ -6,6 +6,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
+import { AuthGuard } from "@/components/auth-guard";
 import { useCustomerDisplayPolling } from "@/hooks/use-customer-display-polling";
 
 function Clock() {
@@ -46,6 +47,14 @@ function OrderNumberTile({
 }
 
 export default function CustomerDisplayPage() {
+  return (
+    <AuthGuard>
+      <CustomerDisplayPageContent />
+    </AuthGuard>
+  );
+}
+
+function CustomerDisplayPageContent() {
   const { inProgressOrders, readyOrders, isLoading } = useCustomerDisplayPolling();
   const soundEnabled = useSettingsStore((s) => s.remote?.soundEnabled ?? false);
   const t = useT();

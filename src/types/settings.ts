@@ -1,4 +1,4 @@
-// Shopbox API payload for GET/PATCH /kds-settings
+// Shopbox API payload for GET/POST /kds-settings
 export interface ShopboxKdsSettings {
   order_sorting: "newest_first" | "oldest_first";
   warning_after_minutes: number;
@@ -12,7 +12,7 @@ export interface ShopboxKdsSettings {
 
 // Settings synced with Shopbox backend (app-facing shape)
 export interface RemoteSettings {
-  /** Kept for PATCH round-trips; KDS sort UI uses local sortOrder instead. */
+  /** Kept for POST round-trips; KDS sort UI uses local sortOrder instead. */
   orderSorting: "newest_first" | "oldest_first";
   timerWarningSeconds: number;
   timerCriticalSeconds: number;

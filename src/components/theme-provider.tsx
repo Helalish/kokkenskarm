@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useLanguageStore } from "@/stores/language-store";
 import { useSettingsStore } from "@/stores/settings-store";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
   const language = useLanguageStore((s) => s.language);
   const theme = useSettingsStore((s) => s.theme);
   const textScale = useSettingsStore((s) => s.textScale);
@@ -40,9 +43,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // After localStorage rehydrate, refresh settings from Shopbox.
   // Cached values are used immediately so KDS can render correctly.
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!hasHydrated || isLoginPage) return;
     void loadFromShopbox();
-  }, [hasHydrated, loadFromShopbox]);
+  }, [hasHydrated, isLoginPage, loadFromShopbox]);
 
   return <>{children}</>;
 }

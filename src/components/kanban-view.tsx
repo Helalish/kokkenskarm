@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { Order } from "@/types/order";
-import { usePipelineStore } from "@/stores/pipeline-store";
+import { PIPELINE_STAGES, getNextStageId, getStage } from "@/lib/pipeline";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useT } from "@/hooks/use-t";
@@ -14,7 +14,6 @@ interface KanbanViewProps {
 }
 
 export function KanbanView({ orders }: KanbanViewProps) {
-  const { stages } = usePipelineStore();
   const sortOrder = useSettingsStore((s) => s.sortOrder);
   const { updateOrderStatus } = useOrdersStore();
   const t = useT();
@@ -22,7 +21,6 @@ export function KanbanView({ orders }: KanbanViewProps) {
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
 
   const prevStageMapRef = useRef<Map<string, string>>(new Map());
-  const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
 
   // Detect stage changes for pulse animation
   useEffect(() => {
@@ -32,7 +30,7 @@ export function KanbanView({ orders }: KanbanViewProps) {
     currentMap.forEach((stageId, orderId) => {
       const prevStageId = prevStageMapRef.current.get(orderId);
       if (prevStageId && prevStageId !== stageId) {
-        const stage = stages.find((s) => s.id === stageId);
+        const stage = getStage(stageId);
         if (stage) newAnimating.set(orderId, stage.color);
       }
     });
@@ -45,19 +43,14 @@ export function KanbanView({ orders }: KanbanViewProps) {
     }
 
     prevStageMapRef.current = currentMap;
-  }, [orders, stages]);
+  }, [orders]);
 
   const handleKanbanClick = useCallback(
     (order: Order) => {
-      const idx = sortedStages.findIndex((s) => s.id === order.currentStageId);
-      if (idx < sortedStages.length - 1) {
-        const nextStage = sortedStages[idx + 1];
-        updateOrderStatus(order.id, nextStage.id);
-      } else {
-        updateOrderStatus(order.id, "done");
-      }
+      const nextId = getNextStageId(order.currentStageId);
+      updateOrderStatus(order.id, nextId ?? "done");
     },
-    [sortedStages, updateOrderStatus]
+    [updateOrderStatus]
   );
 
   const sortFn = (a: Order, b: Order) => {
@@ -84,7 +77,7 @@ export function KanbanView({ orders }: KanbanViewProps) {
   return (
     <>
       <div className="flex-1 flex overflow-hidden">
-        {sortedStages.map((stage) => {
+        {PIPELINE_STAGES.map((stage) => {
           const columnOrders = orders
             .filter((o) => o.currentStageId === stage.id)
             .sort(sortFn);

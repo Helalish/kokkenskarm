@@ -3,9 +3,6 @@ export interface PipelineStage {
   name: string;
   sortOrder: number;
   color: string;
-  isTerminal: boolean;
-  smsEnabled?: boolean;
-  smsTemplate?: string;
 }
 
 // Full set of statuses the Shopbox KDS API accepts (PATCH body).

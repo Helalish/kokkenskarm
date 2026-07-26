@@ -34,7 +34,6 @@ const da: Dict = {
   "card.itemsDone": "{done}/{total} færdig",
   "card.itemsCount": "{total} varer",
   "card.showDetails": "Vis detaljer",
-  "card.sendSms": "Send SMS til {phone}",
   "card.acknowledgeChanges": "Markér ændringer som set",
   "card.deleted": "Slettet — lav ikke",
   "card.new": "NY",
@@ -43,8 +42,6 @@ const da: Dict = {
   // Expanded card
   "expanded.unpaid": "IKKE BETALT",
   "expanded.paid": "BETALT",
-  "expanded.customer": "Kunde",
-  "expanded.note": "Note",
   "expanded.items": "Varer ({done}/{total} færdig)",
   "expanded.markAllDone": "Markér alle færdige",
   "expanded.variant": "Variant",
@@ -158,10 +155,21 @@ const da: Dict = {
 
   // SMS log
   "smsLog.title": "SMS-historik",
-  "smsLog.clear": "Ryd log",
   "smsLog.empty": "Ingen SMS sendt endnu",
   "smsLog.order": "Ordre #{orderNumber}",
-  "smsLog.resend": "Send igen",
+
+  // Auth / login
+  "login.title": "Køkkenvisning",
+  "login.subtitle": "Log ind for at administrere ordrer for din restaurant.",
+  "login.email": "E-mail",
+  "login.password": "Adgangskode",
+  "login.rememberMe": "Husk mig",
+  "login.submit": "Log ind",
+  "login.submitting": "Logger ind…",
+  "login.showPassword": "Vis adgangskode",
+  "login.hidePassword": "Skjul adgangskode",
+  "login.error.generic": "Kunne ikke logge ind. Prøv igen.",
+  "logout.label": "Log ud",
 };
 
 const en: Dict = {
@@ -196,7 +204,6 @@ const en: Dict = {
   "card.itemsDone": "{done}/{total} done",
   "card.itemsCount": "{total} items",
   "card.showDetails": "Show details",
-  "card.sendSms": "Send SMS to {phone}",
   "card.acknowledgeChanges": "Mark changes as reviewed",
   "card.deleted": "Deleted — don't make",
   "card.new": "NEW",
@@ -205,8 +212,6 @@ const en: Dict = {
   // Expanded card
   "expanded.unpaid": "UNPAID",
   "expanded.paid": "PAID",
-  "expanded.customer": "Customer",
-  "expanded.note": "Note",
   "expanded.items": "Items ({done}/{total} done)",
   "expanded.markAllDone": "Mark all done",
   "expanded.variant": "Variant",
@@ -320,10 +325,21 @@ const en: Dict = {
 
   // SMS log
   "smsLog.title": "SMS history",
-  "smsLog.clear": "Clear log",
   "smsLog.empty": "No SMS sent yet",
   "smsLog.order": "Order #{orderNumber}",
-  "smsLog.resend": "Send again",
+
+  // Auth / login
+  "login.title": "Kitchen Display",
+  "login.subtitle": "Sign in to manage orders for your restaurant.",
+  "login.email": "Email",
+  "login.password": "Password",
+  "login.rememberMe": "Remember me",
+  "login.submit": "Sign in",
+  "login.submitting": "Signing in…",
+  "login.showPassword": "Show password",
+  "login.hidePassword": "Hide password",
+  "login.error.generic": "Unable to log in. Please try again.",
+  "logout.label": "Log out",
 };
 
 export const translations: Record<Language, Dict> = { da, en };

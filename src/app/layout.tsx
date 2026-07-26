@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ToastContainer } from "@/components/toast-container";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -12,7 +13,6 @@ const lexend = Lexend({
 export const metadata: Metadata = {
   title: "Shopbox KDS",
   description: "Kitchen Display System for Shopbox",
-  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -33,6 +33,7 @@ export default function RootLayout({
       <body className="min-h-full bg-shopbox-surface text-shopbox-text font-(family-name:--font-lexend) antialiased">
         <ThemeProvider>
           {children}
+          <ToastContainer />
         </ThemeProvider>
       </body>
     </html>

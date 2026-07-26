@@ -8,6 +8,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useSmsLogStore } from "@/stores/sms-log-store";
 import { SmsLogPanel } from "./sms-log-panel";
 import { LanguageToggle } from "./language-toggle";
+import { LogoutButton } from "./logout-button";
 import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
@@ -156,6 +157,8 @@ export function KdsHeader() {
 
         {/* Language toggle */}
         <LanguageToggle />
+
+        <LogoutButton />
       </div>
     </header>
   );
