@@ -7,7 +7,7 @@ import { SessionGuard } from "@/components/session-guard";
 import { SetupShell } from "@/components/setup-shell";
 import { useT } from "@/hooks/use-t";
 import { resetBranchSession } from "@/lib/reset-branch-session";
-import { fetchClientBranches } from "@/lib/shopbox-api";
+import { fetchClientBranches } from "@/api/branches";
 import { useAuthStore } from "@/stores/auth-store";
 import type { ShopboxBranch } from "@/types/branch";
 

@@ -5,7 +5,7 @@ import { useState, type SubmitEvent } from "react";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useT } from "@/hooks/use-t";
 import { useAuthStore } from "@/stores/auth-store";
-import { authenticateCredentials } from "@/lib/shopbox-api";
+import { authenticateCredentials } from "@/api/authenticate";
 
 function EyeIcon({ open }: { open: boolean }) {
   if (open) {

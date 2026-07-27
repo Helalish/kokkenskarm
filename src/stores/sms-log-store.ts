@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { fetchSmsHistory } from "@/lib/shopbox-api";
+import { fetchSmsHistory } from "@/api/sms-history";
 import type { ShopboxSmsHistoryEntry } from "@/types/sms";
 
 export interface SmsLogEntry {

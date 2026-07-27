@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Order } from "@/types/order";
-import { fetchOrders } from "@/lib/shopbox-api";
+import { fetchOrders } from "@/api/orders";
 
 const POLL_INTERVAL = 8000;
 

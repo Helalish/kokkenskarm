@@ -11,7 +11,7 @@ import type {
 import {
   fetchKdsSettings,
   updateKdsSettings,
-} from "@/lib/shopbox-api";
+} from "@/api/kds-settings";
 
 export const DEFAULT_THEME: ThemeColors = {
   surface: "#000000",

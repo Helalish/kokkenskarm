@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SessionGuard } from "@/components/session-guard";
 import { SetupShell } from "@/components/setup-shell";
 import { useT } from "@/hooks/use-t";
-import { fetchMyClients } from "@/lib/shopbox-api";
+import { fetchMyClients } from "@/api/clients";
 import { resetBranchSession } from "@/lib/reset-branch-session";
 import { useAuthStore } from "@/stores/auth-store";
 import type { ShopboxClient } from "@/types/client";

@@ -4,7 +4,7 @@ import { create } from "zustand";
 import type { Order } from "@/types/order";
 import { isKdsStageId, type KdsApiStatus } from "@/types/pipeline";
 import { useToastStore } from "@/stores/toast-store";
-import { updateOrderStatus as shopboxUpdateOrderStatus, updateProductPrepared } from "@/lib/shopbox-api";
+import { updateOrderStatus as shopboxUpdateOrderStatus, updateProductPrepared } from "@/api/orders";
 
 interface OrdersState {
   orders: Order[];
