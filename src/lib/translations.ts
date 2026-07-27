@@ -170,6 +170,29 @@ const da: Dict = {
   "login.hidePassword": "Skjul adgangskode",
   "login.error.generic": "Kunne ikke logge ind. Prøv igen.",
   "logout.label": "Log ud",
+
+  // Client / restaurant selection
+  "selection.client.title": "Vælg kunde",
+  "selection.client.subtitle": "Vælg den Shopbox-kunde, du vil arbejde med.",
+  "selection.client.search": "Søg efter kunde-id eller navn",
+  "selection.client.loading": "Indlæser kunder...",
+  "selection.client.loadingMore": "Indlæser flere...",
+  "selection.client.empty": "Ingen kunder fundet",
+  "selection.client.emptyHint": "Prøv et andet navn eller kunde-id.",
+  "selection.client.id": "Kunde-id: {id}",
+  "selection.branch.title": "Vælg restaurant",
+  "selection.branch.subtitle": "Vælg den butik, filial eller restaurant, der skal bruge KDS.",
+  "selection.branch.client": "Valgt kunde",
+  "selection.branch.currentClient": "Nuværende kunde",
+  "selection.branch.changeClient": "Skift kunde",
+  "selection.branch.loading": "Indlæser restauranter...",
+  "selection.branch.empty": "Denne kunde har ingen restauranter",
+  "selection.branch.emptyHint": "Vælg en anden kunde for at fortsætte.",
+  "selection.branch.id": "Restaurant-id: {id}",
+  "selection.branch.closed": "Lukket",
+  "selection.retry": "Prøv igen",
+  "selection.error.generic": "Dataene kunne ikke indlæses. Prøv igen.",
+  "header.changeRestaurant": "Skift restaurant",
 };
 
 const en: Dict = {
@@ -340,6 +363,29 @@ const en: Dict = {
   "login.hidePassword": "Hide password",
   "login.error.generic": "Unable to log in. Please try again.",
   "logout.label": "Log out",
+
+  // Client / restaurant selection
+  "selection.client.title": "Select client",
+  "selection.client.subtitle": "Choose the Shopbox client you want to work with.",
+  "selection.client.search": "Search by client id or name",
+  "selection.client.loading": "Loading clients...",
+  "selection.client.loadingMore": "Loading more...",
+  "selection.client.empty": "No clients found",
+  "selection.client.emptyHint": "Try another name or client id.",
+  "selection.client.id": "Client id: {id}",
+  "selection.branch.title": "Select restaurant",
+  "selection.branch.subtitle": "Choose the store, branch, or restaurant that will use KDS.",
+  "selection.branch.client": "Selected client",
+  "selection.branch.currentClient": "Current client",
+  "selection.branch.changeClient": "Change client",
+  "selection.branch.loading": "Loading restaurants...",
+  "selection.branch.empty": "This client has no restaurants",
+  "selection.branch.emptyHint": "Choose another client to continue.",
+  "selection.branch.id": "Restaurant id: {id}",
+  "selection.branch.closed": "Closed",
+  "selection.retry": "Retry",
+  "selection.error.generic": "Unable to load the data. Please try again.",
+  "header.changeRestaurant": "Change restaurant",
 };
 
 export const translations: Record<Language, Dict> = { da, en };

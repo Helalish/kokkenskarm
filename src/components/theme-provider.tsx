@@ -4,15 +4,19 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguageStore } from "@/stores/language-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isSetupPage =
+    pathname === "/login" || pathname === "/select-client" || pathname === "/select-branch";
   const language = useLanguageStore((s) => s.language);
   const theme = useSettingsStore((s) => s.theme);
   const textScale = useSettingsStore((s) => s.textScale);
   const loadFromShopbox = useSettingsStore((s) => s.loadFromShopbox);
   const hasHydrated = useSettingsStore((s) => s.hasHydrated);
+  const selectedClientId = useAuthStore((s) => s.selectedClientId);
+  const selectedBranchId = useAuthStore((s) => s.selectedBranchId);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -43,9 +47,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // After localStorage rehydrate, refresh settings from Shopbox.
   // Cached values are used immediately so KDS can render correctly.
   useEffect(() => {
-    if (!hasHydrated || isLoginPage) return;
+    if (!hasHydrated || isSetupPage || !selectedClientId || !selectedBranchId) return;
     void loadFromShopbox();
-  }, [hasHydrated, isLoginPage, loadFromShopbox]);
+  }, [hasHydrated, isSetupPage, selectedClientId, selectedBranchId, loadFromShopbox]);
 
   return <>{children}</>;
 }

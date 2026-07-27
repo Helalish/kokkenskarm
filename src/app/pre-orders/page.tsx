@@ -6,15 +6,15 @@ import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useOrdersStore } from "@/stores/orders-store";
 import { PreOrderCard } from "@/components/pre-order-card";
 import { OrderCardExpanded } from "@/components/order-card-expanded";
-import { AuthGuard } from "@/components/auth-guard";
+import { SessionGuard } from "@/components/session-guard";
 import type { Order } from "@/types/order";
 import { useT } from "@/hooks/use-t";
 
 export default function PreOrdersPage() {
   return (
-    <AuthGuard>
+    <SessionGuard>
       <PreOrdersPageContent />
-    </AuthGuard>
+    </SessionGuard>
   );
 }
 

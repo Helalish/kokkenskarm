@@ -20,6 +20,7 @@ interface SmsLogState {
   error: string | null;
   loadedLimit: number | null;
   loadHistory: (limit?: number, opts?: { force?: boolean }) => Promise<void>;
+  reset: () => void;
 }
 
 let inFlight: Promise<void> | null = null;
@@ -44,6 +45,11 @@ export const useSmsLogStore = create<SmsLogState>()(
     isLoading: false,
     error: null,
     loadedLimit: null,
+
+    reset: () => {
+      inFlight = null;
+      set({ entries: [], isLoading: false, error: null, loadedLimit: null });
+    },
 
     loadHistory: async (limit = 10, opts) => {
       const force = opts?.force ?? false;

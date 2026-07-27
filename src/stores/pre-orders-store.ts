@@ -11,11 +11,14 @@ interface PreOrdersState {
   setPreOrders: (orders: Order[]) => void;
   setPromoteMinutesBefore: (minutes: number) => void;
   getReadyToPromote: () => Order[];
+  reset: () => void;
 }
 
 export const usePreOrdersStore = create<PreOrdersState>()((set, get) => ({
   preOrders: [],
   promoteMinutesBefore: 15,
+
+  reset: () => set({ preOrders: [] }),
 
   addPreOrder: (order) => {
     set((state) => ({ preOrders: [...state.preOrders, order] }));

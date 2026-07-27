@@ -67,6 +67,7 @@ interface SettingsState extends LocalSettings {
   loadFromShopbox: () => Promise<void>;
   saveToShopbox: (updates: Partial<RemoteSettings>) => Promise<boolean>;
   setHasHydrated: (value: boolean) => void;
+  resetRemote: () => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -83,6 +84,7 @@ export const useSettingsStore = create<SettingsState>()(
       hasHydrated: false,
 
       setHasHydrated: (value) => set({ hasHydrated: value }),
+      resetRemote: () => set({ remote: null, isLoading: true, isSaving: false, error: null }),
 
       updateSettings: (updates) => {
         const { viewMode, sortOrder, textScale, theme, ...remoteUpdates } = updates;

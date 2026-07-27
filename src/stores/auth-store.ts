@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { ShopboxBranch } from "@/types/branch";
+import type { ShopboxClient } from "@/types/client";
 
 export interface AuthAccount {
   uid: number;
@@ -15,13 +17,15 @@ interface AuthState {
   accessToken: string | null;
   account: AuthAccount | null;
   selectedClientId: string | null;
+  selectedClientName: string | null;
   selectedBranchId: string | null;
+  selectedBranchName: string | null;
 
   isAuthenticated: () => boolean;
   login: (accessToken: string, account: AuthAccount) => void;
   logout: () => void;
-  setSelectedClient: (clientId: string | null) => void;
-  setSelectedBranch: (branchId: string | null) => void;
+  selectClient: (client: ShopboxClient) => void;
+  selectBranch: (branch: ShopboxBranch) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -30,7 +34,9 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       account: null,
       selectedClientId: null,
+      selectedClientName: null,
       selectedBranchId: null,
+      selectedBranchName: null,
 
       isAuthenticated: () => !!get().accessToken,
 
@@ -43,16 +49,26 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           account: null,
           selectedClientId: null,
+          selectedClientName: null,
           selectedBranchId: null,
+          selectedBranchName: null,
         });
       },
 
-      setSelectedClient: (clientId) => {
-        set({ selectedClientId: clientId });
+      selectClient: (client) => {
+        set({
+          selectedClientId: client.id,
+          selectedClientName: client.name,
+          selectedBranchId: null,
+          selectedBranchName: null,
+        });
       },
 
-      setSelectedBranch: (branchId) => {
-        set({ selectedBranchId: branchId });
+      selectBranch: (branch) => {
+        set({
+          selectedBranchId: branch.id,
+          selectedBranchName: branch.name,
+        });
       },
     }),
     {

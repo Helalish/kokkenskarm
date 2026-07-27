@@ -19,11 +19,14 @@ interface OrdersState {
   setOrders: (orders: Order[]) => void;
   incrementSmsSent: (orderId: string) => void;
   updateOrderStatus: (orderId: string, nextStageId: string) => Promise<boolean>;
+  reset: () => void;
 }
 
 export const useOrdersStore = create<OrdersState>()((set, get) => ({
   orders: [],
   dismissedOrders: [],
+
+  reset: () => set({ orders: [], dismissedOrders: [] }),
 
   addOrder: (order) => {
     set((state) => {

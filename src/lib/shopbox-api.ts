@@ -3,6 +3,8 @@ import type { KdsApiStatus } from "@/types/pipeline";
 import type { ShopboxKdsSettings } from "@/types/settings";
 import type { ShopboxSmsHistoryEntry } from "@/types/sms";
 import type { ShopboxLoginResponse, ShopboxErrorResponse } from "@/types/auth";
+import type { PaginatedClients, ShopboxClient, ShopboxClientsResponse } from "@/types/client";
+import type { ShopboxBranch, ShopboxBranchesResponse } from "@/types/branch";
 import { transformShopboxOrders } from "@/services/shopbox-transformer";
 import { useToastStore } from "@/stores/toast-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -10,14 +12,10 @@ import { useLanguageStore } from "@/stores/language-store";
 import { clearClientSessionAndRedirect } from "@/lib/clear-client-session";
 
 const DEV_BASE_URL = "https://api-dev.shopbox.com/api/v3";
-const DEV_CLIENT_ID = "5661";
-const DEV_BRANCH_ID = "6095";
 
 function getConfig() {
   return {
     baseUrl: (process.env.NEXT_PUBLIC_SHOPBOX_BASE_URL || DEV_BASE_URL).replace(/\/+$/, ""),
-    clientId: process.env.NEXT_PUBLIC_SHOPBOX_CLIENT_ID || DEV_CLIENT_ID,
-    branchId: process.env.NEXT_PUBLIC_SHOPBOX_BRANCH_ID || DEV_BRANCH_ID,
   };
 }
 
@@ -28,29 +26,42 @@ function getLang() {
 let isRedirectingForAuth = false;
 let lastForbiddenToastAt = 0;
 
-function buildShopboxUrl(pathname: string, query?: Record<string, string | undefined>) {
-  const { baseUrl, clientId, branchId } = getConfig();
-  const auth = useAuthStore.getState();
+function appendQuery(url: URL, query?: Record<string, string | number | undefined>) {
+  if (!query) return;
 
-  const effectiveBranchId = auth.selectedBranchId || branchId;
-  const effectiveClientId = auth.selectedClientId || clientId;
-
-  const url = new URL(`${baseUrl}/branches/${effectiveBranchId}${pathname}`);
-
-  if (auth.accessToken) {
-    url.searchParams.set("accessToken", auth.accessToken);
-  }
-  url.searchParams.set("client", effectiveClientId);
-  url.searchParams.set("lang", getLang());
-
-  if (query) {
-    for (const [k, v] of Object.entries(query)) {
-      if (v !== undefined && v !== null && String(v) !== "") {
-        url.searchParams.set(k, String(v));
-      }
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && String(value) !== "") {
+      url.searchParams.set(key, String(value));
     }
   }
+}
+
+function buildShopboxRootUrl(
+  pathname: string,
+  query?: Record<string, string | number | undefined>
+) {
+  const { baseUrl } = getConfig();
+  const auth = useAuthStore.getState();
+  const url = new URL(`${baseUrl}${pathname}`);
+
+  if (auth.accessToken) url.searchParams.set("accessToken", auth.accessToken);
+  url.searchParams.set("lang", getLang());
+  appendQuery(url, query);
+
   return url;
+}
+
+function buildShopboxUrl(pathname: string, query?: Record<string, string | undefined>) {
+  const auth = useAuthStore.getState();
+
+  if (!auth.selectedClientId || !auth.selectedBranchId) {
+    throw new Error("Select a client and restaurant before making this request.");
+  }
+
+  return buildShopboxRootUrl(`/branches/${auth.selectedBranchId}${pathname}`, {
+    client: auth.selectedClientId,
+    ...query,
+  });
 }
 
 function getErrorMessage(data: unknown, fallback: string): string {
@@ -149,6 +160,76 @@ export async function authenticateCredentials(
   }
 
   return login as ShopboxLoginResponse;
+}
+
+export async function fetchMyClients({
+  page,
+  perPage,
+  keyword,
+}: {
+  page: number;
+  perPage: number;
+  keyword?: string;
+}): Promise<PaginatedClients> {
+  const url = buildShopboxRootUrl("/clients/myclients", {
+    page,
+    "per-page": perPage,
+    keyword,
+  });
+  const response = await shopboxFetch(url);
+  const payload = (await response.json()) as ShopboxClientsResponse;
+  const rawItems = Array.isArray(payload.data) ? payload.data : [];
+
+  const items = rawItems.flatMap<ShopboxClient>((item) => {
+    const rawId = item.client0?.uid ?? item.client;
+    if (rawId === null || rawId === undefined) return [];
+
+    const id = String(rawId);
+    return [{ id, name: item.client0?.name?.trim() || `Client ${id}` }];
+  });
+
+  const pagination = payload.meta?.pagination;
+  const currentPage = pagination?.current_page ?? page;
+  const totalPages = pagination?.total_pages;
+  const hasMore =
+    totalPages !== undefined
+      ? currentPage < totalPages
+      : pagination?.links?.next
+        ? true
+        : rawItems.length >= perPage;
+
+  return {
+    items,
+    hasMore,
+    total: pagination?.total ?? items.length,
+  };
+}
+
+export async function fetchClientBranches(clientId: string): Promise<ShopboxBranch[]> {
+  const url = buildShopboxRootUrl("/branches", {
+    client: clientId,
+    page: 1,
+    "per-page": 200,
+    for_inventory: 0,
+  });
+  const response = await shopboxFetch(url);
+  const payload = (await response.json()) as ShopboxBranchesResponse;
+  const rawItems = Array.isArray(payload.data) ? payload.data : [];
+
+  return rawItems.flatMap<ShopboxBranch>((item) => {
+    if (item.uid === null || item.uid === undefined) return [];
+
+    const id = String(item.uid);
+    const city = item.address0?.city_name?.trim();
+    return [
+      {
+        id,
+        name: item.name?.trim() || `Restaurant ${id}`,
+        ...(city ? { city } : {}),
+        isClosed: Boolean(item.is_closed),
+      },
+    ];
+  });
 }
 
 export async function fetchOrders(status?: string): Promise<Order[]> {

@@ -65,7 +65,7 @@ export function LoginForm() {
     try {
       const response = await authenticateCredentials(username, password, rememberMe);
 
-      // Navigation to /kds is handled by the login page once accessToken is set.
+      // The login page sends the user to the next incomplete setup step.
       login(response.accessToken, {
         uid: response.account.uid,
         username: response.account.username,

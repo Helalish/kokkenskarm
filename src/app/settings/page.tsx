@@ -5,16 +5,16 @@ import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
-import { AuthGuard } from "@/components/auth-guard";
+import { SessionGuard } from "@/components/session-guard";
 import type { RemoteSettings } from "@/types/settings";
 
 type SortOrder = "oldest" | "newest";
 
 export default function SettingsPage() {
   return (
-    <AuthGuard>
+    <SessionGuard>
       <SettingsPageContent />
-    </AuthGuard>
+    </SessionGuard>
   );
 }
 

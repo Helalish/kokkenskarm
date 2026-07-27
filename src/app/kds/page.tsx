@@ -11,13 +11,13 @@ import { KanbanView } from "@/components/kanban-view";
 import { SummaryView } from "@/components/summary-view";
 import { PipelineBar } from "@/components/pipeline-bar";
 import { KdsHeader } from "@/components/kds-header";
-import { AuthGuard } from "@/components/auth-guard";
+import { SessionGuard } from "@/components/session-guard";
 
 export default function KdsPage() {
   return (
-    <AuthGuard>
+    <SessionGuard>
       <KdsPageContent />
-    </AuthGuard>
+    </SessionGuard>
   );
 }
 

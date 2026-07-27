@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSettingsStore, DEFAULT_THEME } from "@/stores/settings-store";
-import { AuthGuard } from "@/components/auth-guard";
+import { SessionGuard } from "@/components/session-guard";
 import type { ThemeColors } from "@/types/settings";
 import { useT } from "@/hooks/use-t";
 
@@ -83,9 +83,9 @@ const PRESETS: { nameKey: string; theme: ThemeColors }[] = [
 
 export default function DesignSettingsPage() {
   return (
-    <AuthGuard>
+    <SessionGuard>
       <DesignSettingsPageContent />
-    </AuthGuard>
+    </SessionGuard>
   );
 }
 
