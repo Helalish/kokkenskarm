@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useOrderPolling } from "@/hooks/use-order-polling";
 import { useT } from "@/hooks/use-t";
@@ -12,6 +13,7 @@ import { SummaryView } from "@/components/summary-view";
 import { PipelineBar } from "@/components/pipeline-bar";
 import { KdsHeader } from "@/components/kds-header";
 import { SessionGuard } from "@/components/session-guard";
+import { subscribeToKdsUpdates } from "@/lib/kds-updates-listener";
 
 export default function KdsPage() {
   return (
@@ -27,11 +29,12 @@ function KdsPageContent() {
   const remote = useSettingsStore((s) => s.remote);
   const soundEnabled = remote?.soundEnabled ?? false;
   const autoDismissReadySeconds = remote?.autoDismissReadySeconds ?? 0;
+  const branchId = useAuthStore((s) => s.selectedBranchId);
   const t = useT();
   const [activeStageFilter, setActiveStageFilter] = useState<string | null>(null);
   const prevOrderCountRef = useRef(orders.length);
 
-  const { isLoading } = useOrderPolling();
+  const { isLoading, refetch } = useOrderPolling();
 
   // Play sound when new orders arrive
   useEffect(() => {
@@ -41,6 +44,21 @@ function KdsPageContent() {
     }
     prevOrderCountRef.current = orders.length;
   }, [orders.length, isLoading, soundEnabled]);
+
+  // Firestore-triggered refresh (keep polling as fallback).
+  useEffect(() => {
+    if (!branchId) return;
+
+    const unsubscribe = subscribeToKdsUpdates(branchId, (event) => {
+      if (event.event === "settings_updated") {
+        void useSettingsStore.getState().loadFromShopbox();
+        return;
+      }
+      void refetch();
+    });
+
+    return unsubscribe;
+  }, [branchId, refetch]);
 
   // Auto-remove ready orders after the configured delay — tell Shopbox (status: done)
   useEffect(() => {

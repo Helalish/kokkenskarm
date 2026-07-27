@@ -11,11 +11,9 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useLanguageStore } from "@/stores/language-store";
 import { clearClientSessionAndRedirect } from "@/lib/clear-client-session";
 
-const DEV_BASE_URL = "https://api-dev.shopbox.com/api/v3";
-
 function getConfig() {
   return {
-    baseUrl: (process.env.NEXT_PUBLIC_SHOPBOX_BASE_URL || DEV_BASE_URL).replace(/\/+$/, ""),
+    baseUrl: (process.env.NEXT_PUBLIC_BACKEND_URL ?? "").replace(/\/+$/, ""),
   };
 }
 

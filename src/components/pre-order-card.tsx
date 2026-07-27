@@ -3,7 +3,6 @@
 import type { Order } from "@/types/order";
 import { SourceBadge } from "./source-badge";
 import { PreOrderCountdown } from "./pre-order-countdown";
-import { cn } from "@/lib/cn";
 
 interface PreOrderCardProps {
   order: Order;
