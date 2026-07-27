@@ -17,7 +17,7 @@ export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) 
   const totalOrders = orders.length;
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-shopbox-primary border-b border-shopbox-border overflow-x-auto">
+    <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-shopbox-primary border-b border-shopbox-border overflow-x-auto">
       <button
         className={cn(
           "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",

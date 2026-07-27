@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getElapsedSeconds, getTimerStatus, formatElapsedTime, type TimerStatus } from "@/lib/time-helpers";
+import { useLanguageStore } from "@/stores/language-store";
 
 interface TimerResult {
   elapsed: number;
@@ -14,6 +15,7 @@ export function useOrderTimer(
   warningSeconds: number,
   criticalSeconds: number
 ): TimerResult {
+  const language = useLanguageStore((s) => s.language);
   const [elapsed, setElapsed] = useState(() => getElapsedSeconds(createdAt));
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function useOrderTimer(
 
   return {
     elapsed,
-    formatted: formatElapsedTime(elapsed),
+    formatted: formatElapsedTime(elapsed, language),
     status: getTimerStatus(elapsed, warningSeconds, criticalSeconds),
   };
 }

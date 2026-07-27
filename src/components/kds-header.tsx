@@ -70,7 +70,7 @@ export function KdsHeader() {
               ? `${selectedClientName} · ${selectedBranchName}`
               : t("header.changeRestaurant")
           }
-          className="group flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-shopbox-accent/40 bg-shopbox-accent/10 px-3 py-1.5 transition hover:border-shopbox-accent hover:bg-shopbox-accent/20 lg:max-w-xs lg:flex-none"
+          className="group flex w-fit max-w-full min-w-0 items-center gap-2 rounded-xl border border-shopbox-accent/40 bg-shopbox-accent/10 px-3 py-1.5 transition hover:border-shopbox-accent hover:bg-shopbox-accent/20"
         >
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold text-shopbox-text">

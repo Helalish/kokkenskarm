@@ -192,9 +192,6 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
                     <span className={cn("font-medium", item.isDone && "line-through")}>
                       {item.name}
                     </span>
-                    <span className="text-[10px] text-shopbox-muted bg-shopbox-surface rounded px-1.5 py-0.5">
-                      {item.category}
-                    </span>
                   </div>
                   {item.variants.length > 0 && (
                     <p className="text-xs text-shopbox-text-secondary mt-0.5">
