@@ -16,3 +16,9 @@ export function getNextStageId(currentStageId: string): string | null {
   if (currentIndex === -1 || currentIndex >= PIPELINE_STAGES.length - 1) return null;
   return PIPELINE_STAGES[currentIndex + 1].id;
 }
+
+export function getPreviousStageId(currentStageId: string): string | null {
+  const currentIndex = PIPELINE_STAGES.findIndex((s) => s.id === currentStageId);
+  if (currentIndex <= 0) return null;
+  return PIPELINE_STAGES[currentIndex - 1].id;
+}

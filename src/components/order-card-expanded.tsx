@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Order } from "@/types/order";
 import { useOrdersStore } from "@/stores/orders-store";
-import { PIPELINE_STAGES, getNextStageId, getStage } from "@/lib/pipeline";
+import { PIPELINE_STAGES, getNextStageId, getPreviousStageId, getStage } from "@/lib/pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useT } from "@/hooks/use-t";
 import { useOrderTimer } from "@/hooks/use-order-timer";
@@ -29,6 +29,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   );
 
   const currentStage = getStage(order.currentStageId);
+  const prevStageId = getPreviousStageId(order.currentStageId);
   const nextStageId = getNextStageId(order.currentStageId);
   const nextStage = nextStageId ? getStage(nextStageId) : null;
   const readyStage = PIPELINE_STAGES[PIPELINE_STAGES.length - 1];
@@ -52,6 +53,10 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
     },
     [updateOrderStatus, order.id]
   );
+
+  const handleMoveBack = useCallback(() => {
+    if (prevStageId) void updateOrderStatus(order.id, prevStageId);
+  }, [prevStageId, updateOrderStatus, order.id]);
 
   const handleRemove = useCallback(() => {
     dismissOrder(order.id);
@@ -214,7 +219,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           </div>
         </div>
 
-        {/* Actions — remove · advance/ready */}
+        {/* Actions — remove · back · advance/ready */}
         <div className="flex items-center gap-4 border-t border-sb-border-tertiary px-6 py-3.5">
           <button
             onClick={handleRemove}
@@ -222,6 +227,14 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           >
             ✕ {t("expanded.remove")}
           </button>
+          {prevStageId && (
+            <button
+              onClick={handleMoveBack}
+              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
+            >
+              {nextStageId ? t("expanded.moveBack") : t("expanded.goBack")}
+            </button>
+          )}
           {nextStageId && nextStageId !== readyStageId && (
             <button
               onClick={() => handleMoveToStage(nextStageId)}

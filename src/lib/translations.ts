@@ -12,7 +12,6 @@ const da: Dict = {
   "header.sound.onTitle": "Lyd til",
   "header.sound.offTitle": "Lyd fra",
   "header.smsLog.title": "SMS-historik",
-  "header.undo": "↩ Fortryd ({count})",
   "header.customerDisplay": "Kundeskærm",
   "header.settings": "⚙ Indstillinger",
   "header.view.grid": "▥ Gitter",
@@ -48,6 +47,8 @@ const da: Dict = {
   "expanded.mod": "Ændringer",
   "expanded.ingredients": "Ingredienser",
   "expanded.moveTo": "Flyt til: {next}",
+  "expanded.moveBack": "← Flyt tilbage",
+  "expanded.goBack": "← Gå tilbage",
   "expanded.remove": "Fjern",
 
   // Grid empty state
@@ -205,7 +206,6 @@ const en: Dict = {
   "header.sound.onTitle": "Sound on",
   "header.sound.offTitle": "Sound off",
   "header.smsLog.title": "SMS history",
-  "header.undo": "↩ Undo ({count})",
   "header.customerDisplay": "Customer screen",
   "header.settings": "⚙ Settings",
   "header.view.grid": "▥ Grid",
@@ -241,6 +241,8 @@ const en: Dict = {
   "expanded.mod": "Modifiers",
   "expanded.ingredients": "Ingredients",
   "expanded.moveTo": "Move to: {next}",
+  "expanded.moveBack": "← Move back",
+  "expanded.goBack": "← Go back",
   "expanded.remove": "Remove",
 
   // Grid empty state

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useOrdersStore } from "@/stores/orders-store";
 import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useSmsLogStore } from "@/stores/sms-log-store";
@@ -17,7 +16,6 @@ const toolbarButtonClass =
   "rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary transition-colors hover:bg-shopbox-card-hover";
 
 export function KdsHeader() {
-  const { undoDismiss, dismissedOrders } = useOrdersStore();
   const { preOrders } = usePreOrdersStore();
   const viewMode = useSettingsStore((s) => s.viewMode);
   const sortOrder = useSettingsStore((s) => s.sortOrder);
@@ -160,13 +158,6 @@ export function KdsHeader() {
         <Link href="/pre-orders" className={toolbarButtonClass}>
           {t("header.preOrders", { count: preOrders.length })}
         </Link>
-
-        {/* Undo */}
-        {dismissedOrders.length > 0 && (
-          <button className={toolbarButtonClass} onClick={() => undoDismiss()}>
-            {t("header.undo", { count: dismissedOrders.length })}
-          </button>
-        )}
 
         {/* Customer display */}
         <Link href="/customer-display" className={toolbarButtonClass}>

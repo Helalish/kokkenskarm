@@ -8,14 +8,12 @@ import { updateOrderStatus as shopboxUpdateOrderStatus, updateProductPrepared } 
 
 interface OrdersState {
   orders: Order[];
-  dismissedOrders: Order[];
 
   addOrder: (order: Order) => void;
   toggleItemDone: (orderId: string, itemId: string) => void;
   markAllItemsDone: (orderId: string) => void;
   acknowledgeChanges: (orderId: string) => void;
   dismissOrder: (orderId: string) => void;
-  undoDismiss: () => Order | null;
   setOrders: (orders: Order[]) => void;
   incrementSmsSent: (orderId: string) => void;
   updateOrderStatus: (orderId: string, nextStageId: string) => Promise<boolean>;
@@ -24,9 +22,8 @@ interface OrdersState {
 
 export const useOrdersStore = create<OrdersState>()((set, get) => ({
   orders: [],
-  dismissedOrders: [],
 
-  reset: () => set({ orders: [], dismissedOrders: [] }),
+  reset: () => set({ orders: [] }),
 
   addOrder: (order) => {
     set((state) => {
@@ -126,29 +123,9 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
   },
 
   dismissOrder: (orderId) => {
-    const order = get().orders.find((o) => o.id === orderId);
-    if (!order) return;
     set((state) => ({
       orders: state.orders.filter((o) => o.id !== orderId),
-      dismissedOrders: [order, ...state.dismissedOrders].slice(0, 20),
     }));
-  },
-
-  undoDismiss: () => {
-    const dismissed = get().dismissedOrders;
-    if (dismissed.length === 0) return null;
-    const [restored, ...rest] = dismissed;
-    set((state) => {
-      // Polling may already have restored this order — don't create a duplicate key.
-      if (state.orders.some((o) => o.id === restored.id)) {
-        return { dismissedOrders: rest };
-      }
-      return {
-        orders: [...state.orders, restored],
-        dismissedOrders: rest,
-      };
-    });
-    return restored;
   },
 
   setOrders: (orders) => {
@@ -213,12 +190,10 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
               orders: state.orders.map((o) =>
                 o.id === orderId ? { ...o, currentStageId: previousStageId } : o
               ),
-              dismissedOrders: state.dismissedOrders.filter((o) => o.id !== orderId),
             };
           }
           return {
             orders: [...state.orders, { ...order, currentStageId: previousStageId }],
-            dismissedOrders: state.dismissedOrders.filter((o) => o.id !== orderId),
           };
         });
       } else {
