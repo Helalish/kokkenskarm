@@ -62,8 +62,9 @@ interface SettingsState extends LocalSettings {
   hasHydrated: boolean;
 
   updateSettings: (updates: Partial<LocalSettings & RemoteSettings>) => void;
-  updateTheme: (updates: Partial<ThemeColors>) => void;
-  resetTheme: () => void;
+  // Design UI disabled until backend sync — keep for re-enable
+  // updateTheme: (updates: Partial<ThemeColors>) => void;
+  // resetTheme: () => void;
   loadFromShopbox: () => Promise<void>;
   saveToShopbox: (updates: Partial<RemoteSettings>) => Promise<boolean>;
   setHasHydrated: (value: boolean) => void;
@@ -101,12 +102,12 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
 
-      updateTheme: (updates) =>
-        set((state) => ({
-          theme: { ...state.theme, ...updates },
-        })),
-
-      resetTheme: () => set({ theme: { ...DEFAULT_THEME } }),
+      // Design UI disabled until backend sync — keep for re-enable
+      // updateTheme: (updates) =>
+      //   set((state) => ({
+      //     theme: { ...state.theme, ...updates },
+      //   })),
+      // resetTheme: () => set({ theme: { ...DEFAULT_THEME } }),
 
       loadFromShopbox: async () => {
         const hasCache = get().remote !== null;

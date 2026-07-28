@@ -1,5 +1,23 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+/**
+ * Design & colors settings are disabled until theme/textScale are
+ * connected to the Shopbox backend. Direct visits redirect to Settings.
+ *
+ * Previous implementation kept below for when we re-enable it.
+ */
+export default function DesignSettingsPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/settings");
+  }, [router]);
+  return null;
+}
+
+/*
 import Link from "next/link";
 import { useSettingsStore, DEFAULT_THEME } from "@/stores/settings-store";
 import { SessionGuard } from "@/components/session-guard";
@@ -106,7 +124,6 @@ function DesignSettingsPageContent() {
           </Link>
         </div>
 
-        {/* Text scale */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("design.textScale")}</h2>
           <div>
@@ -124,7 +141,6 @@ function DesignSettingsPageContent() {
             />
             <div className="relative h-4 text-xs text-shopbox-muted mt-1">
               <span className="absolute left-0">70%</span>
-              {/* 100 sits at (100-70)/(150-70) = 37.5% of the track */}
               <span className="absolute left-[37.5%] -translate-x-1/2">100%</span>
               <span className="absolute right-0">150%</span>
             </div>
@@ -134,7 +150,6 @@ function DesignSettingsPageContent() {
           </p>
         </section>
 
-        {/* Presets */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("design.presets")}</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -161,7 +176,6 @@ function DesignSettingsPageContent() {
           </div>
         </section>
 
-        {/* Individual color pickers */}
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">{t("design.colors")}</h2>
@@ -196,7 +210,6 @@ function DesignSettingsPageContent() {
           </div>
         </section>
 
-        {/* Live preview */}
         <section className="rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("design.livePreview")}</h2>
           <div
@@ -242,3 +255,4 @@ function DesignSettingsPageContent() {
     </div>
   );
 }
+*/

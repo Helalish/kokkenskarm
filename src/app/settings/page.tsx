@@ -270,7 +270,7 @@ function SettingsPageContent() {
           </label>
         </section>
 
-        {/* Configuration */}
+        {/* Design & colors — disabled until synced with Shopbox backend
         <section className="mb-6 rounded-2xl bg-shopbox-card border border-shopbox-border p-5">
           <h2 className="text-lg font-semibold mb-4">{t("settings.configuration")}</h2>
           <Link
@@ -280,6 +280,7 @@ function SettingsPageContent() {
             {t("settings.design")}
           </Link>
         </section>
+        */}
 
         {/* Save bar */}
         {hasChanges && (
