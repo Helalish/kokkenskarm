@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePreOrdersStore } from "@/stores/pre-orders-store";
+// import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useSmsLogStore } from "@/stores/sms-log-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -16,7 +16,7 @@ const toolbarButtonClass =
   "rounded-lg bg-shopbox-card px-3 py-1.5 text-sm font-medium text-shopbox-text-secondary transition-colors hover:bg-shopbox-card-hover";
 
 export function KdsHeader() {
-  const { preOrders } = usePreOrdersStore();
+  // const { preOrders } = usePreOrdersStore();
   const viewMode = useSettingsStore((s) => s.viewMode);
   const sortOrder = useSettingsStore((s) => s.sortOrder);
   const remote = useSettingsStore((s) => s.remote);
@@ -155,9 +155,11 @@ export function KdsHeader() {
           {showSmsLog && <SmsLogPanel onClose={() => setShowSmsLog(false)} />}
         </div>
 
+        {/* Pre-orders — disabled for v1
         <Link href="/pre-orders" className={toolbarButtonClass}>
           {t("header.preOrders", { count: preOrders.length })}
         </Link>
+        */}
 
         {/* Customer display */}
         <Link href="/customer-display" className={toolbarButtonClass}>

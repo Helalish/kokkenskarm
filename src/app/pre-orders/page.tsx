@@ -1,5 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+/**
+ * Pre-orders are disabled for v1. Direct visits redirect to KDS.
+ *
+ * Previous implementation kept below for when we re-enable it.
+ */
+export default function PreOrdersPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/kds");
+  }, [router]);
+  return null;
+}
+
+/*
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePreOrdersStore } from "@/stores/pre-orders-store";
@@ -60,7 +77,6 @@ function PreOrdersPageContent() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-shopbox-primary border-b border-shopbox-border">
         <div className="flex items-center gap-3">
           <Link
@@ -90,7 +106,6 @@ function PreOrdersPageContent() {
         </div>
       </header>
 
-      {/* Grid */}
       {sortedPreOrders.length === 0 ? (
         <div className="flex-1 flex items-center justify-center text-shopbox-muted">
           <div className="text-center">
@@ -111,7 +126,6 @@ function PreOrdersPageContent() {
         </div>
       )}
 
-      {/* Expanded modal */}
       {expandedOrder && (
         <OrderCardExpanded
           order={expandedOrder}
@@ -121,3 +135,4 @@ function PreOrdersPageContent() {
     </div>
   );
 }
+*/
