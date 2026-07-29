@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
 import { useOrdersStore } from "@/stores/orders-store";
 import { getNextStageId, getStage } from "@/lib/pipeline";
@@ -38,12 +37,10 @@ export function OrderCard({
     timerWarningSeconds,
     timerCriticalSeconds,
     showItemCheckmarks,
-    autoAdvanceWhenAllDone,
   } = useSettingsStore((s) => s.remote) ?? {
     timerWarningSeconds: 0,
     timerCriticalSeconds: 0,
     showItemCheckmarks: false,
-    autoAdvanceWhenAllDone: false,
   };
   const { formatted, status } = useOrderTimer(
     order.createdAt,
@@ -59,17 +56,6 @@ export function OrderCard({
   const doneCount = activeItems.filter((i) => i.isDone).length;
   const totalCount = activeItems.length;
   const allDone = totalCount > 0 && doneCount === totalCount;
-
-  // Auto-advance when all items are done (stops when there is no next stage)
-  const prevAllDoneRef = useRef(false);
-  useEffect(() => {
-    if (autoAdvanceWhenAllDone && showItemCheckmarks && allDone && !prevAllDoneRef.current) {
-      if (nextStageId) {
-        updateOrderStatus(order.id, nextStageId);
-      }
-    }
-    prevAllDoneRef.current = allDone;
-  }, [allDone, autoAdvanceWhenAllDone, showItemCheckmarks, nextStageId, order.id, updateOrderStatus]);
 
   function handleClick() {
     if (viewMode === "kanban") {
