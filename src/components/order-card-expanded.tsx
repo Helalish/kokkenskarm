@@ -17,10 +17,11 @@ interface OrderCardExpandedProps {
 }
 
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
-  const { updateOrderStatus, dismissOrder, toggleItemDone, markAllItemsDone } = useOrdersStore();
+  const { updateOrderStatus, toggleItemDone, markAllItemsDone } = useOrdersStore();
   const remote = useSettingsStore((s) => s.remote);
   const timerWarningSeconds = remote?.timerWarningSeconds ?? 0;
   const timerCriticalSeconds = remote?.timerCriticalSeconds ?? 0;
+  const showItemCheckmarks = remote?.showItemCheckmarks ?? false;
   const t = useT();
   const { formatted, status } = useOrderTimer(
     order.createdAt,
@@ -34,8 +35,12 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const nextStage = nextStageId ? getStage(nextStageId) : null;
   const readyStage = PIPELINE_STAGES[PIPELINE_STAGES.length - 1];
   const readyStageId = readyStage?.id ?? null;
-  const doneCount = order.items.filter((i) => i.isDone).length;
-  const totalCount = order.items.length;
+  const activeItems = order.items.filter(
+    (i) => i.changeStatus !== "removed" && i.changeStatus !== "refunded"
+  );
+  const doneCount = activeItems.filter((i) => i.isDone).length;
+  const totalCount = activeItems.length;
+  const allItemsDone = totalCount > 0 && doneCount === totalCount;
   const [noteReviewed, setNoteReviewed] = useState(false);
 
   // Close on escape
@@ -57,11 +62,6 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
   const handleMoveBack = useCallback(() => {
     if (prevStageId) void updateOrderStatus(order.id, prevStageId);
   }, [prevStageId, updateOrderStatus, order.id]);
-
-  const handleRemove = useCallback(() => {
-    dismissOrder(order.id);
-    onClose();
-  }, [dismissOrder, order.id, onClose]);
 
   return (
     <div
@@ -158,12 +158,15 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
             <p className="text-xs text-shopbox-muted">
               {t("expanded.items", { done: doneCount, total: totalCount })}
             </p>
-            <button
-              onClick={() => markAllItemsDone(order.id)}
-              className="text-xs text-shopbox-accent hover:underline"
-            >
-              {t("expanded.markAllDone")}
-            </button>
+            {showItemCheckmarks && (
+              <button
+                onClick={() => markAllItemsDone(order.id)}
+                disabled={allItemsDone}
+                className="text-xs text-shopbox-accent hover:underline disabled:cursor-not-allowed disabled:text-shopbox-muted disabled:no-underline"
+              >
+                {t("expanded.markAllDone")}
+              </button>
+            )}
           </div>
           <div className="space-y-1">
             {order.items.map((item) => (
@@ -219,14 +222,8 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           </div>
         </div>
 
-        {/* Actions — remove · back · advance/ready */}
+        {/* Actions — back · advance/ready */}
         <div className="flex items-center gap-4 border-t border-sb-border-tertiary px-6 py-3.5">
-          <button
-            onClick={handleRemove}
-            className="flex h-13 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#F04438] bg-[#F04438]/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-[#F04438]/20"
-          >
-            ✕ {t("expanded.remove")}
-          </button>
           {prevStageId && (
             <button
               onClick={handleMoveBack}
