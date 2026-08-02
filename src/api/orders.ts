@@ -5,10 +5,7 @@ import { buildShopboxUrl, shopboxFetch } from "@/api/client";
 
 /** GET /branches/:branchId/kds/orders */
 export async function fetchOrders(status?: string): Promise<Order[]> {
-  const url = buildShopboxUrl("/kds/orders", {
-    today: "true",
-    ...(status ? { status } : {}),
-  });
+  const url = buildShopboxUrl("/kds/orders", status ? { undefined } : undefined);  
   const response = await shopboxFetch(url);
   const data = await response.json();
   return transformShopboxOrders(data);

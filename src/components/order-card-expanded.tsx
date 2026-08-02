@@ -9,6 +9,7 @@ import { useT } from "@/hooks/use-t";
 import { useOrderTimer } from "@/hooks/use-order-timer";
 import { SourceBadge } from "./source-badge";
 import { CustomerInfo } from "./customer-info";
+import { OrderItemExtras } from "./order-item-extras";
 import { cn } from "@/lib/cn";
 
 interface OrderCardExpandedProps {
@@ -201,21 +202,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
                       {item.name}
                     </span>
                   </div>
-                  {item.variants.length > 0 && (
-                    <p className="text-xs text-shopbox-text-secondary mt-0.5">
-                      {t("expanded.variant")}: {item.variants.join(", ")}
-                    </p>
-                  )}
-                  {item.modifications.length > 0 && (
-                    <p className="text-xs text-shopbox-warning mt-0.5">
-                      {t("expanded.mod")}: {item.modifications.join(", ")}
-                    </p>
-                  )}
-                  {item.ingredients.length > 0 && (
-                    <p className="text-xs text-shopbox-text-secondary mt-0.5">
-                      {t("expanded.ingredients")}: {item.ingredients.join(", ")}
-                    </p>
-                  )}
+                  <OrderItemExtras item={item} />
                 </div>
               </div>
             ))}

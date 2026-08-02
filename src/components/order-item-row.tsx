@@ -2,6 +2,7 @@
 
 import type { OrderItem } from "@/types/order";
 import { cn } from "@/lib/cn";
+import { OrderItemExtras } from "./order-item-extras";
 
 interface OrderItemRowProps {
   item: OrderItem;
@@ -77,22 +78,7 @@ export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
             </span>
           )}
         </div>
-        {item.variants.length > 0 && (
-          <p className={cn(
-            "text-xs mt-0.5",
-            isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-detail"
-          )}>
-            {item.variants.join(", ")}
-          </p>
-        )}
-        {item.modifications.length > 0 && (
-          <p className={cn(
-            "text-xs mt-0.5",
-            isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-green-400/70" : "text-shopbox-warning"
-          )}>
-            {item.modifications.join(", ")}
-          </p>
-        )}
+        <OrderItemExtras item={item} compact isRemoved={isRemoved} isAdded={isAdded} />
       </div>
     </div>
   );

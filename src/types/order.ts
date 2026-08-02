@@ -8,13 +8,19 @@ export interface CustomerInfo {
   email?: string;
 }
 
+export interface OrderItemModifier {
+  id: string;
+  name: string;
+  /** When true, ingredient was opted out — show red + strikethrough */
+  optOut: boolean;
+}
+
 export interface OrderItem {
   id: string;
   name: string;
   quantity: number;
   variants: string[];
-  modifications: string[];
-  ingredients: string[];
+  modifiers: OrderItemModifier[];
   category: string;
   isDone: boolean;
   changeStatus?: "added" | "removed" | "refunded";

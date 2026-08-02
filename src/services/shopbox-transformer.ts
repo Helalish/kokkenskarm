@@ -50,11 +50,34 @@ function transformProducts(raw: any): OrderItem[] {
       name: nonEmpty(p.kitchen_name) ?? nonEmpty(p.name) ?? "Unknown",
       quantity: Number(p.quantity ?? 1),
       variants: nonEmpty(p.product_variance) ? [p.product_variance] : [],
-      modifications: normalizeArray(p.modifiers),
-      ingredients: [],
+      modifiers: transformModifiers(p.modifiers),
       category: "",
       isDone: p.prepared === true || p.prepared === "true",
     }));
+}
+
+/** Shopbox product modifiers: `{ uid, name, opt_out }` (legacy string arrays still accepted). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function transformModifiers(raw: any): OrderItem["modifiers"] {
+  if (!raw) return [];
+  const list = Array.isArray(raw) ? raw : [raw];
+  return list
+    .map((m, index) => {
+      if (typeof m === "string") {
+        const name = nonEmpty(m);
+        if (!name) return null;
+        return { id: `legacy-${index}-${name}`, name, optOut: false };
+      }
+      if (!m || typeof m !== "object") return null;
+      const name = nonEmpty(m.name) ?? nonEmpty(m.kitchen_name);
+      if (!name) return null;
+      return {
+        id: String(m.uid ?? `mod-${index}-${name}`),
+        name,
+        optOut: m.opt_out === true || m.opt_out === "true" || m.optOut === true,
+      };
+    })
+    .filter((m): m is OrderItem["modifiers"][number] => m !== null);
 }
 
 function mapSource(source: string | undefined): OrderSource {
@@ -97,11 +120,4 @@ function unixToIso(unix: number | string | undefined): string {
 function nonEmpty(val: string | undefined | null): string | undefined {
   if (!val || val.trim() === "") return undefined;
   return val.trim();
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeArray(val: any): string[] {
-  if (Array.isArray(val)) return val.filter((v) => typeof v === "string" && v.trim() !== "");
-  if (typeof val === "string" && val.trim() !== "") return [val];
-  return [];
 }
