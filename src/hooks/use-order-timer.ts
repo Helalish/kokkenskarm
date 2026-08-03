@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { getElapsedSeconds, getTimerStatus, formatElapsedTime, type TimerStatus } from "@/lib/time-helpers";
 import { useLanguageStore } from "@/stores/language-store";
+import { useNow } from "@/hooks/use-now";
 
 interface TimerResult {
   elapsed: number;
@@ -16,14 +16,8 @@ export function useOrderTimer(
   criticalSeconds: number
 ): TimerResult {
   const language = useLanguageStore((s) => s.language);
-  const [elapsed, setElapsed] = useState(() => getElapsedSeconds(createdAt));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsed(getElapsedSeconds(createdAt));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [createdAt]);
+  const now = useNow();
+  const elapsed = getElapsedSeconds(createdAt, now);
 
   return {
     elapsed,

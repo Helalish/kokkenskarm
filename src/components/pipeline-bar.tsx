@@ -11,7 +11,7 @@ interface PipelineBarProps {
 }
 
 export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) {
-  const { orders } = useOrdersStore();
+  const orders = useOrdersStore((s) => s.orders);
   const t = useT();
 
   const totalOrders = orders.length;

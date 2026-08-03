@@ -15,7 +15,7 @@ interface KanbanViewProps {
 
 export function KanbanView({ orders }: KanbanViewProps) {
   const sortOrder = useSettingsStore((s) => s.sortOrder);
-  const { updateOrderStatus } = useOrdersStore();
+  const updateOrderStatus = useOrdersStore((s) => s.updateOrderStatus);
   const t = useT();
   const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());

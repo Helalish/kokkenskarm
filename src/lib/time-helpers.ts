@@ -27,8 +27,8 @@ export function formatElapsedTime(seconds: number, language: Language = "en"): s
   return `${days}${units.day} ${remainHrs}${units.hour}`;
 }
 
-export function getElapsedSeconds(createdAt: string): number {
-  return Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000);
+export function getElapsedSeconds(createdAt: string, now: number = Date.now()): number {
+  return Math.floor((now - new Date(createdAt).getTime()) / 1000);
 }
 
 export type TimerStatus = "normal" | "warning" | "critical";

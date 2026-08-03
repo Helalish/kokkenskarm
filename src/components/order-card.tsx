@@ -33,7 +33,9 @@ export function OrderCard({
   viewMode = "grid",
   onKanbanClick,
 }: OrderCardProps) {
-  const { updateOrderStatus, toggleItemDone, acknowledgeChanges } = useOrdersStore();
+  const updateOrderStatus = useOrdersStore((s) => s.updateOrderStatus);
+  const toggleItemDone = useOrdersStore((s) => s.toggleItemDone);
+  const acknowledgeChanges = useOrdersStore((s) => s.acknowledgeChanges);
   const t = useT();
   const {
     timerWarningSeconds,

@@ -18,7 +18,9 @@ interface OrderCardExpandedProps {
 }
 
 export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
-  const { updateOrderStatus, toggleItemDone, markAllItemsDone } = useOrdersStore();
+  const updateOrderStatus = useOrdersStore((s) => s.updateOrderStatus);
+  const toggleItemDone = useOrdersStore((s) => s.toggleItemDone);
+  const markAllItemsDone = useOrdersStore((s) => s.markAllItemsDone);
   const remote = useSettingsStore((s) => s.remote);
   const timerWarningSeconds = remote?.timerWarningSeconds ?? 0;
   const timerCriticalSeconds = remote?.timerCriticalSeconds ?? 0;
@@ -222,7 +224,7 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
           {nextStageId && nextStageId !== readyStageId && (
             <button
               onClick={() => handleMoveToStage(nextStageId)}
-              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-detail bg-white/10 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-white/15"
+              className="flex h-13 flex-1 cursor-pointer items-center justify-center rounded-lg border border-shopbox-warning bg-shopbox-warning/90 px-4 text-sm font-semibold leading-snug text-white transition-colors hover:bg-shopbox-warning"
             >
               {t("expanded.moveTo", { next: nextStage?.name ?? "" })}
             </button>

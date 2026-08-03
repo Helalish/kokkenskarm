@@ -1,10 +1,51 @@
 "use client";
 
 import { create } from "zustand";
-import type { Order } from "@/types/order";
+import type { Order, OrderItem } from "@/types/order";
 import { isKdsStageId, type KdsApiStatus } from "@/types/pipeline";
 import { useToastStore } from "@/stores/toast-store";
 import { updateOrderStatus as shopboxUpdateOrderStatus, updateProductPrepared } from "@/api/orders";
+
+/** Skip store updates when a refetch didn't change anything the UI shows. */
+function itemUiKey(item: OrderItem): string {
+  return [
+    item.id,
+    item.quantity,
+    item.isDone ? "1" : "0",
+    item.changeStatus ?? "",
+    item.name,
+    item.variants.join(","),
+    item.modifiers.map((m) => `${m.id}:${m.quantity}`).join(","),
+    item.addOns.map((m) => `${m.id}:${m.quantity}`).join(","),
+    item.optOuts.map((m) => `${m.id}:${m.quantity}`).join(","),
+  ].join(";");
+}
+
+function orderUiKey(order: Order): string {
+  return [
+    order.id,
+    order.orderNumber,
+    order.currentStageId,
+    order.createdAt,
+    order.stageEnteredAt ?? "",
+    order.paymentStatus,
+    order.hasChanges ? "1" : "0",
+    order.isRefunded ? "1" : "0",
+    order.notes ?? "",
+    order.customerInfo?.name ?? "",
+    order.customerInfo?.phone ?? "",
+    order.items.map(itemUiKey).join("|"),
+  ].join("#");
+}
+
+function areOrdersUiEqual(prev: Order[], next: Order[]): boolean {
+  if (prev.length !== next.length) return false;
+  const prevKeys = new Map(prev.map((o) => [o.id, orderUiKey(o)]));
+  for (const order of next) {
+    if (prevKeys.get(order.id) !== orderUiKey(order)) return false;
+  }
+  return true;
+}
 
 interface OrdersState {
   orders: Order[];
@@ -160,6 +201,10 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
       seen.add(order.id);
       unique.push(order);
     }
+
+    const prev = get().orders;
+    if (areOrdersUiEqual(prev, unique)) return;
+
     set({ orders: unique });
   },
 

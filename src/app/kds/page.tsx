@@ -22,7 +22,7 @@ export default function KdsPage() {
 }
 
 function KdsPageContent() {
-  const { orders, updateOrderStatus } = useOrdersStore();
+  const orders = useOrdersStore((s) => s.orders);
   const viewMode = useSettingsStore((s) => s.viewMode);
   const remote = useSettingsStore((s) => s.remote);
   const soundEnabled = remote?.soundEnabled ?? false;
@@ -42,23 +42,26 @@ function KdsPageContent() {
     prevOrderCountRef.current = orders.length;
   }, [orders.length, isLoading, soundEnabled]);
 
+  // Stable interval — read latest orders from the store inside the tick.
   useEffect(() => {
     if (autoDismissReadySeconds <= 0) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      for (const order of orders) {
+      const { orders: current, updateOrderStatus: dismiss } = useOrdersStore.getState();
+      for (const order of current) {
         if (
           order.currentStageId === "ready" &&
           order.stageEnteredAt &&
           now - new Date(order.stageEnteredAt).getTime() >= autoDismissReadySeconds * 1000
         ) {
-          void updateOrderStatus(order.id, "done");
+          void dismiss(order.id, "done");
         }
       }
     }, 5000);
+
     return () => clearInterval(interval);
-  }, [autoDismissReadySeconds, orders, updateOrderStatus]);
+  }, [autoDismissReadySeconds]);
 
   const filteredOrders =
     activeStageFilter && viewMode !== "kanban"
