@@ -3,11 +3,13 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
 import { SessionGuard } from "@/components/session-guard";
 import { useCustomerDisplayPolling } from "@/hooks/use-customer-display-polling";
+import { subscribeToKdsUpdates } from "@/lib/kds-updates-listener";
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -55,11 +57,28 @@ export default function CustomerDisplayPage() {
 }
 
 function CustomerDisplayPageContent() {
-  const { inProgressOrders, readyOrders, isLoading } = useCustomerDisplayPolling();
+  const { inProgressOrders, readyOrders, isLoading, refetch } =
+    useCustomerDisplayPolling();
   const soundEnabled = useSettingsStore((s) => s.remote?.soundEnabled ?? false);
+  const branchId = useAuthStore((s) => s.selectedBranchId);
   const t = useT();
   const [recentlyReady, setRecentlyReady] = useState<Set<string>>(new Set());
   const prevReadyIdsRef = useRef<Set<string> | null>(null);
+
+  // Firestore-triggered refresh (keep polling as fallback).
+  useEffect(() => {
+    if (!branchId) return;
+
+    const unsubscribe = subscribeToKdsUpdates(branchId, (event) => {
+      if (event.event === "settings_updated") {
+        void useSettingsStore.getState().loadFromShopbox();
+        return;
+      }
+      void refetch();
+    });
+
+    return unsubscribe;
+  }, [branchId, refetch]);
 
   // Highlight + sound when an order newly appears in "ready"
   useEffect(() => {

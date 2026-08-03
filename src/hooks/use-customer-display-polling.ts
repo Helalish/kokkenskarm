@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Order } from "@/types/order";
 import { fetchOrders } from "@/api/orders";
 
-const POLL_INTERVAL = 8000;
+/** Slow safety net if Firebase misses an update. Primary sync is Firebase → refetch(). */
+const FALLBACK_POLL_INTERVAL_MS = 90_000;
 
 export function useCustomerDisplayPolling() {
   const [inProgressOrders, setInProgressOrders] = useState<Order[]>([]);
@@ -45,11 +46,12 @@ export function useCustomerDisplayPolling() {
   useEffect(() => {
     activeRef.current = true;
 
+    // Defer so React Strict Mode's mount → cleanup → remount doesn't double-fetch.
     const initialTimer = window.setTimeout(() => {
       refresh();
     }, 0);
 
-    const interval = setInterval(refresh, POLL_INTERVAL);
+    const interval = window.setInterval(refresh, FALLBACK_POLL_INTERVAL_MS);
 
     const handleVisibility = () => {
       if (!document.hidden) refresh();
