@@ -43,13 +43,9 @@ const da: Dict = {
   "expanded.paid": "BETALT",
   "expanded.items": "Varer ({done}/{total} færdig)",
   "expanded.markAllDone": "Markér alle færdige",
-  "expanded.variant": "Variant",
-  "expanded.mod": "Ændringer",
-  "expanded.ingredients": "Ingredienser",
   "expanded.moveTo": "Flyt til: {next}",
   "expanded.moveBack": "← Flyt tilbage",
   "expanded.goBack": "← Gå tilbage",
-  "expanded.remove": "Fjern",
 
   // Grid empty state
   "grid.empty.title": "Ingen aktive ordrer",
@@ -237,13 +233,9 @@ const en: Dict = {
   "expanded.paid": "PAID",
   "expanded.items": "Items ({done}/{total} done)",
   "expanded.markAllDone": "Mark all done",
-  "expanded.variant": "Variant",
-  "expanded.mod": "Modifiers",
-  "expanded.ingredients": "Ingredients",
   "expanded.moveTo": "Move to: {next}",
   "expanded.moveBack": "← Move back",
   "expanded.goBack": "← Go back",
-  "expanded.remove": "Remove",
 
   // Grid empty state
   "grid.empty.title": "No active orders",

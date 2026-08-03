@@ -1,6 +1,6 @@
 "use client";
 
-import type { OrderItem } from "@/types/order";
+import type { OrderItem, OrderItemExtra } from "@/types/order";
 import { cn } from "@/lib/cn";
 
 interface OrderItemExtrasProps {
@@ -11,49 +11,55 @@ interface OrderItemExtrasProps {
   isAdded?: boolean;
 }
 
-/** Variants (grey), add-on modifiers (orange), opt-outs (red + strikethrough). */
+function extraLabel(extra: OrderItemExtra): string {
+  return extra.quantity > 1 ? `${extra.quantity}x ${extra.name}` : extra.name;
+}
+
+/**
+ * Order-line extras:
+ * - variants (product_variance) → grey
+ * - modifiers + add_ons → orange
+ * - opt_outs → red + strikethrough
+ */
 export function OrderItemExtras({
   item,
   compact = false,
   isRemoved = false,
   isAdded = false,
 }: OrderItemExtrasProps) {
-  const textSize = compact ? "text-xs" : "text-sm";
+  const orangeExtras = [...item.modifiers, ...item.addOns];
+  const hasExtras =
+    item.variants.length > 0 || orangeExtras.length > 0 || item.optOuts.length > 0;
 
-  if (item.variants.length === 0 && item.modifiers.length === 0) return null;
+  if (!hasExtras) return null;
+
+  const muted = isRemoved
+    ? "text-red-400/60 line-through"
+    : isAdded
+      ? "text-green-400/70"
+      : null;
 
   return (
-    <div className={cn("mt-0.5 space-y-0.5", textSize)}>
+    <div className={cn("mt-0.5 space-y-0.5", compact ? "text-xs" : "text-sm")}>
       {item.variants.map((variant) => (
-        <p
-          key={variant}
-          className={cn(
-            "font-medium",
-            isRemoved
-              ? "text-red-400/60 line-through"
-              : isAdded
-                ? "text-green-400/70"
-                : "text-shopbox-detail"
-          )}
-        >
+        <p key={variant} className={cn("font-medium", muted ?? "text-shopbox-detail")}>
           {variant}
         </p>
       ))}
-      {item.modifiers.map((mod) => (
+      {orangeExtras.map((extra, index) => (
         <p
-          key={mod.id}
-          className={cn(
-            "font-medium",
-            isRemoved
-              ? "text-red-400/60 line-through"
-              : isAdded
-                ? "text-green-400/70"
-                : mod.optOut
-                  ? "text-shopbox-critical line-through"
-                  : "text-shopbox-warning"
-          )}
+          key={`${extra.id}-${index}`}
+          className={cn("font-medium", muted ?? "text-shopbox-warning")}
         >
-          {mod.name}
+          {extraLabel(extra)}
+        </p>
+      ))}
+      {item.optOuts.map((optOut) => (
+        <p
+          key={optOut.id}
+          className={cn("font-medium", muted ?? "text-shopbox-critical line-through")}
+        >
+          {extraLabel(optOut)}
         </p>
       ))}
     </div>

@@ -8,7 +8,11 @@ import { updateOrderStatus as shopboxUpdateOrderStatus, updateProductPrepared } 
 
 interface OrdersState {
   orders: Order[];
+  /** In-flight Shopbox writes — refetch should wait until this is 0. */
+  pendingMutations: number;
 
+  beginMutation: () => void;
+  endMutation: () => void;
   addOrder: (order: Order) => void;
   toggleItemDone: (orderId: string, itemId: string) => void;
   markAllItemsDone: (orderId: string) => void;
@@ -22,8 +26,15 @@ interface OrdersState {
 
 export const useOrdersStore = create<OrdersState>()((set, get) => ({
   orders: [],
+  pendingMutations: 0,
 
-  reset: () => set({ orders: [] }),
+  beginMutation: () =>
+    set((state) => ({ pendingMutations: state.pendingMutations + 1 })),
+
+  endMutation: () =>
+    set((state) => ({ pendingMutations: Math.max(0, state.pendingMutations - 1) })),
+
+  reset: () => set({ orders: [], pendingMutations: 0 }),
 
   addOrder: (order) => {
     set((state) => {
@@ -49,23 +60,28 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
       ),
     }));
 
-    void updateProductPrepared(orderId, itemId, next).catch(() => {
-      // Rollback on failure
-      set((state) => ({
-        orders: state.orders.map((o) =>
-          o.id === orderId
-            ? { ...o, items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: previous } : it)) }
-            : o
-        ),
-      }));
+    get().beginMutation();
+    void updateProductPrepared(orderId, itemId, next)
+      .catch(() => {
+        // Rollback on failure
+        set((state) => ({
+          orders: state.orders.map((o) =>
+            o.id === orderId
+              ? { ...o, items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: previous } : it)) }
+              : o
+          ),
+        }));
 
-      useToastStore.getState().addToast({
-        type: "info",
-        message: "Failed to update item",
-        detail: "The change has been reverted. Please try again.",
-        duration: 4000,
+        useToastStore.getState().addToast({
+          type: "info",
+          message: "Failed to update item",
+          detail: "The change has been reverted. Please try again.",
+          duration: 4000,
+        });
+      })
+      .finally(() => {
+        get().endMutation();
       });
-    });
   },
 
   markAllItemsDone: (orderId) => {
@@ -84,34 +100,41 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
 
     if (toUpdate.length === 0) return;
 
-    void Promise.allSettled(toUpdate.map((i) => updateProductPrepared(orderId, i.id, true))).then((results) => {
-      const failedIds = toUpdate
-        .filter((_, idx) => results[idx]?.status === "rejected")
-        .map((i) => i.id);
+    // Hold off Firestore-driven refetches until every prepared PATCH finishes,
+    // otherwise the first success can overwrite optimistic state mid-batch.
+    get().beginMutation();
+    void Promise.allSettled(toUpdate.map((i) => updateProductPrepared(orderId, i.id, true)))
+      .then((results) => {
+        const failedIds = toUpdate
+          .filter((_, idx) => results[idx]?.status === "rejected")
+          .map((i) => i.id);
 
-      if (failedIds.length === 0) return;
+        if (failedIds.length === 0) return;
 
-      // Rollback only the ones that failed
-      set((state) => ({
-        orders: state.orders.map((o) =>
-          o.id === orderId
-            ? {
-                ...o,
-                items: o.items.map((i) =>
-                  failedIds.includes(i.id) ? { ...i, isDone: previousById.get(i.id) ?? false } : i
-                ),
-              }
-            : o
-        ),
-      }));
+        // Rollback only the ones that failed
+        set((state) => ({
+          orders: state.orders.map((o) =>
+            o.id === orderId
+              ? {
+                  ...o,
+                  items: o.items.map((i) =>
+                    failedIds.includes(i.id) ? { ...i, isDone: previousById.get(i.id) ?? false } : i
+                  ),
+                }
+              : o
+          ),
+        }));
 
-      useToastStore.getState().addToast({
-        type: "info",
-        message: "Failed to update some items",
-        detail: "Some item checks were reverted. Please try again.",
-        duration: 4500,
+        useToastStore.getState().addToast({
+          type: "info",
+          message: "Failed to update some items",
+          detail: "Some item checks were reverted. Please try again.",
+          duration: 4500,
+        });
+      })
+      .finally(() => {
+        get().endMutation();
       });
-    });
   },
 
   acknowledgeChanges: (orderId) => {
@@ -173,6 +196,7 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
       }));
     }
 
+    get().beginMutation();
     try {
       await shopboxUpdateOrderStatus(orderId, {
         order_type: order.orderType ?? "takeaway",
@@ -214,6 +238,8 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
       });
 
       return false;
+    } finally {
+      get().endMutation();
     }
   },
 }));

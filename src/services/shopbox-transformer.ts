@@ -1,4 +1,4 @@
-import type { Order, OrderItem, OrderSource, PaymentStatus } from "@/types/order";
+import type { Order, OrderItem, OrderItemExtra, OrderSource, PaymentStatus } from "@/types/order";
 import { isKdsStageId } from "@/types/pipeline";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,34 +50,34 @@ function transformProducts(raw: any): OrderItem[] {
       name: nonEmpty(p.kitchen_name) ?? nonEmpty(p.name) ?? "Unknown",
       quantity: Number(p.quantity ?? 1),
       variants: nonEmpty(p.product_variance) ? [p.product_variance] : [],
-      modifiers: transformModifiers(p.modifiers),
+      modifiers: transformExtras(p.modifiers),
+      addOns: transformExtras(p.add_ons),
+      optOuts: transformExtras(p.opt_outs),
       category: "",
       isDone: p.prepared === true || p.prepared === "true",
     }));
 }
 
-/** Shopbox product modifiers: `{ uid, name, opt_out }` (legacy string arrays still accepted). */
+/**
+ * Shopbox product line extras (`modifiers` / `add_ons` / `opt_outs`):
+ * `{ uid, name, kitchen_name, quantity }`.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function transformModifiers(raw: any): OrderItem["modifiers"] {
+function transformExtras(raw: any): OrderItemExtra[] {
   if (!raw) return [];
   const list = Array.isArray(raw) ? raw : [raw];
   return list
     .map((m, index) => {
-      if (typeof m === "string") {
-        const name = nonEmpty(m);
-        if (!name) return null;
-        return { id: `legacy-${index}-${name}`, name, optOut: false };
-      }
       if (!m || typeof m !== "object") return null;
-      const name = nonEmpty(m.name) ?? nonEmpty(m.kitchen_name);
+      const name = nonEmpty(m.kitchen_name) ?? nonEmpty(m.name);
       if (!name) return null;
       return {
-        id: String(m.uid ?? `mod-${index}-${name}`),
+        id: String(m.uid ?? `extra-${index}-${name}`),
         name,
-        optOut: m.opt_out === true || m.opt_out === "true" || m.optOut === true,
+        quantity: Number(m.quantity ?? 1) || 1,
       };
     })
-    .filter((m): m is OrderItem["modifiers"][number] => m !== null);
+    .filter((m): m is OrderItemExtra => m !== null);
 }
 
 function mapSource(source: string | undefined): OrderSource {
