@@ -1,87 +1,40 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
 import { fetchOrders as shopboxFetchOrders } from "@/api/orders";
+import { useKdsLiveSync, type KdsLiveSyncState } from "@/hooks/use-kds-live-sync";
 
-/** Slow safety net if Firebase misses an update. Primary sync is Firebase → refetch(). */
-const FALLBACK_POLL_INTERVAL_MS = 90_000;
-
-export function useOrderPolling() {
+export function useOrderPolling(): KdsLiveSyncState {
   const setOrders = useOrdersStore((s) => s.setOrders);
   const pendingMutations = useOrdersStore((s) => s.pendingMutations);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const requestIdRef = useRef(0);
-  const activeRef = useRef(false);
   const queuedRefetchRef = useRef(false);
 
-  const fetchOrders = useCallback(async () => {
-    if (typeof document !== "undefined" && document.hidden) return;
-    if (!activeRef.current) return;
-
-    // Don't replace optimistic UI mid-write (e.g. mark-all-done PATCHes).
-    // Queue one refetch for when pendingMutations returns to 0.
+  const refresh = useCallback(async () => {
+    // Don't replace optimistic UI mid-write — queue one refetch instead.
     if (useOrdersStore.getState().pendingMutations > 0) {
       queuedRefetchRef.current = true;
       return;
     }
 
-    const requestId = ++requestIdRef.current;
+    const orders = (await shopboxFetchOrders()) ?? [];
 
-    try {
-      const orders = await shopboxFetchOrders();
-      if (requestId !== requestIdRef.current || !activeRef.current) return;
-
-      // A mutation may have started while the GET was in flight — discard stale snapshot.
-      if (useOrdersStore.getState().pendingMutations > 0) {
-        queuedRefetchRef.current = true;
-        return;
-      }
-
-      setOrders(orders ?? []);
-      setError(null);
-    } catch (err) {
-      if (requestId !== requestIdRef.current || !activeRef.current) return;
-      setError("Network error");
-      console.error("Order polling error:", err);
-    } finally {
-      if (requestId === requestIdRef.current && activeRef.current) {
-        setIsLoading(false);
-      }
+    if (useOrdersStore.getState().pendingMutations > 0) {
+      queuedRefetchRef.current = true;
+      return;
     }
+
+    setOrders(orders);
   }, [setOrders]);
 
-  // Flush any refetch that was deferred while writes were in flight.
+  const { isLoading, error, refetch } = useKdsLiveSync({ refresh });
+
+  // Flush any refetch deferred while writes were in flight.
   useEffect(() => {
     if (pendingMutations > 0 || !queuedRefetchRef.current) return;
     queuedRefetchRef.current = false;
-    void fetchOrders();
-  }, [pendingMutations, fetchOrders]);
+    void refetch();
+  }, [pendingMutations, refetch]);
 
-  useEffect(() => {
-    activeRef.current = true;
-
-    // Defer so React Strict Mode's mount → cleanup → remount doesn't double-fetch.
-    const initialTimer = window.setTimeout(() => {
-      fetchOrders();
-    }, 0);
-
-    const interval = window.setInterval(fetchOrders, FALLBACK_POLL_INTERVAL_MS);
-
-    const handleVisibility = () => {
-      if (!document.hidden) fetchOrders();
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      activeRef.current = false;
-      requestIdRef.current += 1;
-      clearTimeout(initialTimer);
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [fetchOrders]);
-
-  return { isLoading, error, refetch: fetchOrders };
+  return { isLoading, error, refetch };
 }

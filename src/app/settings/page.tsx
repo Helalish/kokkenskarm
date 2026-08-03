@@ -3,9 +3,12 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
 import { SessionGuard } from "@/components/session-guard";
+import { subscribeToKdsUpdates } from "@/lib/kds-updates-listener";
+import { SETTINGS_ONLY_ORDER_EVENTS } from "@/types/kds-update";
 import type { RemoteSettings } from "@/types/settings";
 
 type SortOrder = "oldest" | "newest";
@@ -20,6 +23,8 @@ export default function SettingsPage() {
 
 function SettingsPageContent() {
   const settings = useSettingsStore();
+  const branchId = useAuthStore((s) => s.selectedBranchId);
+  const clientId = useAuthStore((s) => s.selectedClientId);
   const t = useT();
   const loadedRef = useRef(false);
   
@@ -32,6 +37,24 @@ function SettingsPageContent() {
       void settings.loadFromShopbox();
     }
   }, [settings]);
+
+  // Live-reload if another device POSTs KDS settings.
+  useEffect(() => {
+    if (!branchId) return;
+
+    return subscribeToKdsUpdates(
+      branchId,
+      (actions) => {
+        if (actions.refetchSettings) {
+          void useSettingsStore.getState().loadFromShopbox();
+        }
+      },
+      {
+        clientId,
+        orderEvents: SETTINGS_ONLY_ORDER_EVENTS,
+      }
+    );
+  }, [branchId, clientId]);
 
   // Show the form as soon as we have settings (cache or network).
   const remote = settings.remote;
