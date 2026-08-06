@@ -105,6 +105,13 @@ export function OrderCard({
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 rounded-t-3xl bg-shopbox-card-header">
         <div className="flex items-center gap-2">
+          {viewMode !== "kanban" && currentStage && (
+            <span
+              className="h-6 w-6 shrink-0 rounded-full"
+              style={{ backgroundColor: currentStage.color }}
+              title={currentStage.name}
+            />
+          )}
           <span className="text-lg font-bold">#{order.orderNumber}</span>
           <SourceBadge source={order.source} />
           <PaymentBadge status={order.paymentStatus} />
@@ -162,20 +169,12 @@ export function OrderCard({
         </div>
       )}
 
-      {/* Status dot (grid only) + customer info */}
-      <div className="px-3 py-1 flex items-center gap-2">
-        {viewMode !== "kanban" && currentStage && (
-          <span
-            className="h-2.5 w-2.5 rounded-full shrink-0"
-            style={{ backgroundColor: currentStage.color }}
-          />
-        )}
-        {order.customerInfo && (
-          <div className="min-w-0 flex-1">
-            <CustomerInfo info={order.customerInfo} />
-          </div>
-        )}
-      </div>
+      {/* Customer info */}
+      {order.customerInfo && (
+        <div className="px-3 py-1">
+          <CustomerInfo info={order.customerInfo} />
+        </div>
+      )}
 
       {/* Items - only show if showItemCheckmarks is enabled */}
       {showItemCheckmarks ? (
