@@ -1,6 +1,7 @@
 export interface ShopboxClient {
   id: string;
   name: string;
+  icon?: string | null;
 }
 
 export interface PaginatedClients {
@@ -15,6 +16,10 @@ export interface ShopboxClientMembership {
   client0?: {
     uid?: number | string | null;
     name?: string | null;
+    logo0?: {
+      image_medium?: string | null;
+      image_original?: string | null;
+    } | null;
   } | null;
 }
 

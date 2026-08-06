@@ -2,6 +2,7 @@
 
 :root {
   --shopbox-primary: #111111;
+  --shopbox-brand: #0E9E73;
   --shopbox-accent: #22C55E;
   --shopbox-light: #E7F5F1;
   --shopbox-surface: #000000;
@@ -25,6 +26,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-shopbox-primary: var(--shopbox-primary);
+  --color-shopbox-brand: var(--shopbox-brand);
   --color-shopbox-accent: var(--shopbox-accent);
   --color-shopbox-light: var(--shopbox-light);
   --color-shopbox-surface: var(--shopbox-surface);

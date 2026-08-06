@@ -25,7 +25,14 @@ export async function fetchMyClients({
     if (rawId === null || rawId === undefined) return [];
 
     const id = String(rawId);
-    return [{ id, name: item.client0?.name?.trim() || `Client ${id}` }];
+    const icon = item.client0?.logo0?.image_medium?.trim() || null;
+    return [
+      {
+        id,
+        name: item.client0?.name?.trim() || `Client ${id}`,
+        ...(icon ? { icon } : {}),
+      },
+    ];
   });
 
   const pagination = payload.meta?.pagination;

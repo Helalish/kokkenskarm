@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { playNewOrderSound } from "@/services/audio-service";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -21,6 +22,34 @@ function Clock() {
     <span className="text-shopbox-text-secondary font-medium tabular-nums">
       {`${h}:${m}`}
     </span>
+  );
+}
+
+function CustomerBrand() {
+  const clientName = useAuthStore((s) => s.selectedClientName);
+  const clientIcon = useAuthStore((s) => s.selectedClientIcon);
+  const [failedIconUrl, setFailedIconUrl] = useState<string | null>(null);
+
+  const showImage = Boolean(clientIcon) && failedIconUrl !== clientIcon;
+  const fallbackName = clientName?.trim() || "Shopbox";
+
+  if (showImage && clientIcon) {
+    return (
+      // External Shopbox CDN URLs — plain <img> avoids remotePatterns config.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={clientIcon}
+        alt={fallbackName}
+        className="h-10 w-auto max-w-55 object-contain"
+        onError={() => setFailedIconUrl(clientIcon)}
+      />
+    );
+  }
+
+  return (
+    <h1 className="text-2xl font-bold tracking-tight text-shopbox-brand">
+      {fallbackName}
+    </h1>
   );
 }
 
@@ -97,7 +126,7 @@ function CustomerDisplayPageContent() {
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-shopbox-accent tracking-tight">Shopbox</h1>
+          <CustomerBrand />
           <span className="text-sm text-shopbox-muted">{t("customer.orderStatus")}</span>
         </div>
         <div className="flex items-center gap-4">

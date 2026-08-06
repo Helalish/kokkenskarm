@@ -180,6 +180,13 @@ function SettingsPageContent() {
                 onChange={(e) => updateDraft("timerWarningSeconds", Number(e.target.value))}
                 className="w-full accent-shopbox-warning"
               />
+              <div className="relative h-4 text-xs text-shopbox-muted mt-1">
+                {/* Positions match 60–900s: 1min=0%, 5min≈28.6%, 10min≈64.3%, 15min=100% */}
+                <span className="absolute left-0">1 min</span>
+                <span className="absolute left-[28.6%] -translate-x-1/2">5 min</span>
+                <span className="absolute left-[64.3%] -translate-x-1/2">10 min</span>
+                <span className="absolute right-0">15 min</span>
+              </div>
             </div>
 
             <div>
@@ -195,6 +202,13 @@ function SettingsPageContent() {
                 onChange={(e) => updateDraft("timerCriticalSeconds", Number(e.target.value))}
                 className="w-full accent-shopbox-critical"
               />
+              <div className="relative h-4 text-xs text-shopbox-muted mt-1">
+                {/* Positions match 120–1800s: 2min=0%, 10min≈28.6%, 20min≈64.3%, 30min=100% */}
+                <span className="absolute left-0">2 min</span>
+                <span className="absolute left-[28.6%] -translate-x-1/2">10 min</span>
+                <span className="absolute left-[64.3%] -translate-x-1/2">20 min</span>
+                <span className="absolute right-0">30 min</span>
+              </div>
             </div>
 
             <div>

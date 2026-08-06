@@ -18,6 +18,7 @@ interface AuthState {
   account: AuthAccount | null;
   selectedClientId: string | null;
   selectedClientName: string | null;
+  selectedClientIcon: string | null;
   selectedBranchId: string | null;
   selectedBranchName: string | null;
 
@@ -35,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
       account: null,
       selectedClientId: null,
       selectedClientName: null,
+      selectedClientIcon: null,
       selectedBranchId: null,
       selectedBranchName: null,
 
@@ -50,6 +52,7 @@ export const useAuthStore = create<AuthState>()(
           account: null,
           selectedClientId: null,
           selectedClientName: null,
+          selectedClientIcon: null,
           selectedBranchId: null,
           selectedBranchName: null,
         });
@@ -59,6 +62,7 @@ export const useAuthStore = create<AuthState>()(
         set({
           selectedClientId: client.id,
           selectedClientName: client.name,
+          selectedClientIcon: client.icon?.trim() || null,
           selectedBranchId: null,
           selectedBranchName: null,
         });

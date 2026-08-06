@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 // import { usePreOrdersStore } from "@/stores/pre-orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -57,9 +58,19 @@ export function KdsHeader() {
   return (
     <header className="flex flex-col gap-2 border-b border-shopbox-border bg-shopbox-primary px-3 py-2 sm:px-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
       <div className="flex min-w-0 items-center gap-3 lg:gap-4">
-        <h1 className="shrink-0 text-xl font-bold tracking-tight text-shopbox-accent sm:text-2xl">
-          {t("header.title")}
-        </h1>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <Image
+            src="/shopbox-logo.svg"
+            alt="Shopbox"
+            width={117}
+            height={20}
+            priority
+            className="h-5 w-auto sm:h-6"
+          />
+          <h1 className="text-xl font-bold tracking-tight text-shopbox-brand sm:text-2xl">
+            {t("header.title")}
+          </h1>
+        </div>
         <div className="hidden h-8 w-px shrink-0 bg-shopbox-border sm:block" aria-hidden="true" />
         <Link
           href="/select-branch?change=1"

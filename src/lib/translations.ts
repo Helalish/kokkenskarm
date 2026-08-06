@@ -4,7 +4,7 @@ type Dict = Record<string, string>;
 
 const da: Dict = {
   // KDS header
-  "header.title": "Shopbox KDS",
+  "header.title": "KDS",
   "header.sort.oldest": "↑ Ældste",
   "header.sort.newest": "↓ Nyeste",
   "header.sort.oldestTitle": "Ældste først",
@@ -194,7 +194,7 @@ const da: Dict = {
 
 const en: Dict = {
   // KDS header
-  "header.title": "Shopbox KDS",
+  "header.title": "KDS",
   "header.sort.oldest": "↑ Oldest",
   "header.sort.newest": "↓ Newest",
   "header.sort.oldestTitle": "Oldest first",
