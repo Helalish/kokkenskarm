@@ -157,7 +157,7 @@ export function KdsHeader() {
         {/* SMS log (dropdown anchored to button) */}
         <div ref={smsWrapperRef} className="relative">
           <button
-            className={toolbarButtonClass}
+            className={`${toolbarButtonClass} [anchor-name:--sms-button]`}
             onClick={() => setShowSmsLog((s) => !s)}
             title={t("header.smsLog.title")}
           >
