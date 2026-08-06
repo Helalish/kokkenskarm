@@ -159,7 +159,9 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
         <div className="px-5 py-2 max-h-64 overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-shopbox-muted">
-              {t("expanded.items", { done: doneCount, total: totalCount })}
+              {showItemCheckmarks
+                ? t("expanded.items", { done: doneCount, total: totalCount })
+                : t("card.itemsCount", { total: totalCount })}
             </p>
             {showItemCheckmarks && (
               <button
@@ -176,31 +178,43 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
               <div
                 key={item.id}
                 className={cn(
-                  "flex items-start gap-3 rounded-lg p-2 cursor-pointer transition-colors hover:bg-white/5",
-                  item.isDone && "opacity-40"
+                  "flex items-start gap-3 rounded-lg p-2 transition-colors",
+                  showItemCheckmarks && "cursor-pointer hover:bg-white/5",
+                  showItemCheckmarks && item.isDone && "opacity-40"
                 )}
-                onClick={() => toggleItemDone(order.id, item.id)}
+                onClick={
+                  showItemCheckmarks
+                    ? () => toggleItemDone(order.id, item.id)
+                    : undefined
+                }
               >
-                <div
-                  className={cn(
-                    "mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors",
-                    item.isDone
-                      ? "border-shopbox-accent bg-shopbox-accent"
-                      : "border-shopbox-muted"
-                  )}
-                >
-                  {item.isDone && (
-                    <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
+                {showItemCheckmarks && (
+                  <div
+                    className={cn(
+                      "mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors",
+                      item.isDone
+                        ? "border-shopbox-accent bg-shopbox-accent"
+                        : "border-shopbox-muted"
+                    )}
+                  >
+                    {item.isDone && (
+                      <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     {item.quantity > 1 && (
                       <span className="font-bold text-shopbox-accent">{item.quantity}x</span>
                     )}
-                    <span className={cn("font-medium", item.isDone && "line-through")}>
+                    <span
+                      className={cn(
+                        "font-medium",
+                        showItemCheckmarks && item.isDone && "line-through"
+                      )}
+                    >
                       {item.name}
                     </span>
                   </div>
