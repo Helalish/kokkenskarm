@@ -60,10 +60,10 @@ export function LoginForm() {
     const formData = new FormData(event.currentTarget);
     const username = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const rememberMe = formData.get("remember_me") === "on";
+    // const rememberMe = formData.get("remember_me") === "on";
 
     try {
-      const response = await authenticateCredentials(username, password, rememberMe);
+      const response = await authenticateCredentials(username, password);
 
       // The login page sends the user to the next incomplete setup step.
       login(response.accessToken, {
@@ -145,6 +145,7 @@ export function LoginForm() {
               </div>
             </div>
 
+            {/* Remember me is out of scope for now (BT-1037).
             <label className="flex cursor-pointer items-center gap-3 text-sm text-shopbox-text-secondary">
               <input
                 type="checkbox"
@@ -153,6 +154,7 @@ export function LoginForm() {
               />
               <span>{t("login.rememberMe")}</span>
             </label>
+            */}
 
             {error && (
               <div

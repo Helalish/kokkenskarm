@@ -73,7 +73,7 @@ export function KdsHeader() {
         </div>
         <div className="hidden h-8 w-px shrink-0 bg-shopbox-border sm:block" aria-hidden="true" />
         <Link
-          href="/select-branch?change=1"
+          href="/select-branch"
           title={
             selectedClientName && selectedBranchName
               ? `${selectedClientName} · ${selectedBranchName}`

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { SessionGuard } from "@/components/session-guard";
 import { SetupShell } from "@/components/setup-shell";
 import { useT } from "@/hooks/use-t";
@@ -25,8 +25,6 @@ function LoadingSpinner({ label }: { label: string }) {
 function SelectBranchContent() {
   const t = useT();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const changeMode = searchParams.get("change") === "1";
   const selectedClientId = useAuthStore((state) => state.selectedClientId);
   const selectedClientName = useAuthStore((state) => state.selectedClientName);
   const selectBranch = useAuthStore((state) => state.selectBranch);
@@ -54,11 +52,6 @@ function SelectBranchContent() {
       .then((items) => {
         if (requestId !== requestIdRef.current) return;
 
-        if (!changeMode && items.length === 1 && items[0]) {
-          chooseBranch(items[0]);
-          return;
-        }
-
         setBranches(items);
         setIsLoading(false);
       })
@@ -67,7 +60,7 @@ function SelectBranchContent() {
         setError(caught instanceof Error ? caught.message : t("selection.error.generic"));
         setIsLoading(false);
       });
-  }, [changeMode, chooseBranch, retryVersion, selectedClientId, t]);
+  }, [retryVersion, selectedClientId, t]);
 
   return (
     <SetupShell title={t("selection.branch.title")} subtitle={t("selection.branch.subtitle")}>
@@ -167,9 +160,7 @@ function SelectBranchContent() {
 export default function SelectBranchPage() {
   return (
     <SessionGuard requireBranch={false}>
-      <Suspense fallback={<LoadingSpinner label="Loading..." />}>
-        <SelectBranchContent />
-      </Suspense>
+      <SelectBranchContent />
     </SessionGuard>
   );
 }
