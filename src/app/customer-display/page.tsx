@@ -195,7 +195,7 @@ function CustomerDisplayPageContent() {
                     orderNumber={order.orderNumber}
                     className={`transition-all duration-500 ${
                       isNew
-                        ? "bg-shopbox-accent/20 border-shopbox-accent scale-105 shadow-[0_0_30px_rgba(34,197,94,0.3)]"
+                        ? "bg-shopbox-accent/20 border-shopbox-accent scale-105 shadow-[0_0_30px_rgba(0,174,102,0.3)]"
                         : "bg-shopbox-accent/10 border-shopbox-accent/30"
                     }`}
                     numberClassName={isNew ? "text-shopbox-accent" : "text-white"}

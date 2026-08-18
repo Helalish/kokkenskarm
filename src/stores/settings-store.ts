@@ -19,7 +19,7 @@ export const DEFAULT_THEME: ThemeColors = {
   card: "#1A1A1A",
   cardHover: "#252525",
   border: "#333333",
-  accent: "#22C55E",
+  accent: "#00AE66",
   text: "#FFFFFF",
   textSecondary: "#B0B0B0",
   muted: "#707070",

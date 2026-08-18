@@ -122,7 +122,7 @@ body {
 
 @keyframes newGlow {
   0% {
-    box-shadow: 0 0 20px rgba(14, 158, 115, 0.6), 0 0 40px rgba(14, 158, 115, 0.3);
+    box-shadow: 0 0 20px rgba(0, 174, 102, 0.6), 0 0 40px rgba(0, 174, 102, 0.3);
   }
   100% {
     box-shadow: none;
@@ -136,11 +136,11 @@ body {
 
 @keyframes stageChangePulse {
   0% {
-    box-shadow: 0 0 0 0 var(--pulse-color, rgba(14, 158, 115, 0.5));
+    box-shadow: 0 0 0 0 var(--pulse-color, rgba(0, 174, 102, 0.5));
     transform: scale(1.02);
   }
   50% {
-    box-shadow: 0 0 12px 4px var(--pulse-color, rgba(14, 158, 115, 0.3));
+    box-shadow: 0 0 12px 4px var(--pulse-color, rgba(0, 174, 102, 0.3));
   }
   100% {
     box-shadow: none;

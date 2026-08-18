@@ -35,7 +35,7 @@ export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
             item.isDone
               ? "border-shopbox-accent bg-shopbox-accent"
               : isAdded
-                ? "border-green-500"
+                ? "border-shopbox-accent"
                 : "border-shopbox-muted"
           )}
         >
@@ -54,7 +54,7 @@ export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
           {item.quantity > 1 && (
             <span className={cn(
               "font-bold",
-              isRemoved ? "text-red-500" : isAdded ? "text-green-500" : "text-shopbox-accent"
+              isRemoved ? "text-red-500" : isAdded ? "text-shopbox-accent" : "text-shopbox-accent"
             )}>
               {item.quantity}x
             </span>
@@ -62,13 +62,13 @@ export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
           <span className={cn(
             "font-medium",
             isRemoved && "line-through text-red-500 font-bold",
-            isAdded && "text-green-500",
+            isAdded && "text-shopbox-accent",
             !isRemoved && !isAdded && item.isDone && "line-through"
           )}>
             {item.name}
           </span>
           {isAdded && (
-            <span className="rounded bg-green-500/20 px-1 py-0.5 text-[9px] font-bold text-green-500 uppercase tracking-wider">
+            <span className="rounded bg-shopbox-accent/20 px-1 py-0.5 text-[9px] font-bold text-shopbox-accent uppercase tracking-wider">
               NY
             </span>
           )}
