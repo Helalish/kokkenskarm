@@ -15,7 +15,7 @@ interface SourceBadgeProps {
 
 export function SourceBadge({ source }: SourceBadgeProps) {
   return (
-    <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-shopbox-text-secondary">
+    <span className="inline-flex items-center text-[12px] font-semibold uppercase tracking-wider text-shopbox-text">
       {sourceLabels[source]}
     </span>
   );

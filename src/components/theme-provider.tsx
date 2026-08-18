@@ -1,18 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useLanguageStore } from "@/stores/language-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
+import { useAuthStore } from "@/stores/auth-store";
 
-/**
- * Syncs Zustand theme colors + text scale to CSS custom properties on :root.
- * This makes all Tailwind classes using var(--shopbox-*) update in realtime.
- */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { theme, textScale } = useSettingsStore();
-  const isFullMode = useModeStore((s) => s.isFullMode);
-  // DEMO mode is locked to 100% text size.
-  const effectiveTextScale = isFullMode ? textScale : 1;
+  const pathname = usePathname();
+  const isSetupPage =
+    pathname === "/login" || pathname === "/select-client" || pathname === "/select-branch";
+  const language = useLanguageStore((s) => s.language);
+  const theme = useSettingsStore((s) => s.theme);
+  const textScale = useSettingsStore((s) => s.textScale);
+  const loadFromShopbox = useSettingsStore((s) => s.loadFromShopbox);
+  const hasHydrated = useSettingsStore((s) => s.hasHydrated);
+  const selectedClientId = useAuthStore((s) => s.selectedClientId);
+  const selectedBranchId = useAuthStore((s) => s.selectedBranchId);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -30,11 +38,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   useEffect(() => {
-    document.documentElement.style.fontSize = `${effectiveTextScale * 100}%`;
+    document.documentElement.style.fontSize = `${textScale * 100}%`;
     return () => {
       document.documentElement.style.fontSize = "";
     };
-  }, [effectiveTextScale]);
+  }, [textScale]);
+
+  // After localStorage rehydrate, refresh settings from Shopbox.
+  // Cached values are used immediately so KDS can render correctly.
+  useEffect(() => {
+    if (!hasHydrated || isSetupPage || !selectedClientId || !selectedBranchId) return;
+    void loadFromShopbox();
+  }, [hasHydrated, isSetupPage, selectedClientId, selectedBranchId, loadFromShopbox]);
 
   return <>{children}</>;
 }

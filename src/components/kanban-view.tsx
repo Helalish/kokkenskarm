@@ -2,30 +2,25 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { Order } from "@/types/order";
-import type { StationConfig } from "@/types/station";
-import { usePipelineStore } from "@/stores/pipeline-store";
+import { PIPELINE_STAGES, getNextStageId, getStage } from "@/lib/pipeline";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
-import { sendOrderSms } from "@/services/sms-service";
+import { useT } from "@/hooks/use-t";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
 
 interface KanbanViewProps {
   orders: Order[];
-  activeStation?: StationConfig | null;
 }
 
-export function KanbanView({ orders, activeStation }: KanbanViewProps) {
-  const { stages } = usePipelineStore();
-  const { sortOrder, smsEnabled } = useSettingsStore();
-  const { isFullMode } = useModeStore();
-  const { advanceStage, dismissOrder } = useOrdersStore();
-  const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
+export function KanbanView({ orders }: KanbanViewProps) {
+  const sortOrder = useSettingsStore((s) => s.sortOrder);
+  const updateOrderStatus = useOrdersStore((s) => s.updateOrderStatus);
+  const t = useT();
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
 
   const prevStageMapRef = useRef<Map<string, string>>(new Map());
-  const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
 
   // Detect stage changes for pulse animation
   useEffect(() => {
@@ -35,7 +30,7 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
     currentMap.forEach((stageId, orderId) => {
       const prevStageId = prevStageMapRef.current.get(orderId);
       if (prevStageId && prevStageId !== stageId) {
-        const stage = stages.find((s) => s.id === stageId);
+        const stage = getStage(stageId);
         if (stage) newAnimating.set(orderId, stage.color);
       }
     });
@@ -48,40 +43,14 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
     }
 
     prevStageMapRef.current = currentMap;
-  }, [orders, stages]);
+  }, [orders]);
 
   const handleKanbanClick = useCallback(
     (order: Order) => {
-      const idx = sortedStages.findIndex((s) => s.id === order.currentStageId);
-      if (idx < sortedStages.length - 1) {
-        const nextStage = sortedStages[idx + 1];
-        advanceStage(order.id, nextStage.id);
-
-        // Per-stage auto-SMS
-        if (
-          smsEnabled &&
-          nextStage.smsEnabled &&
-          nextStage.smsTemplate &&
-          order.customerInfo?.phone
-        ) {
-          const message = nextStage.smsTemplate.replace("#{orderNumber}", String(order.orderNumber));
-          sendOrderSms(order.customerInfo.phone, order.orderNumber, order.id, message);
-        }
-      } else {
-        dismissOrder(order.id);
-      }
+      const nextId = getNextStageId(order.currentStageId);
+      updateOrderStatus(order.id, nextId ?? "done");
     },
-    [sortedStages, advanceStage, dismissOrder, smsEnabled]
-  );
-
-  const handleKanbanBack = useCallback(
-    (order: Order) => {
-      const idx = sortedStages.findIndex((s) => s.id === order.currentStageId);
-      if (idx > 0) {
-        advanceStage(order.id, sortedStages[idx - 1].id);
-      }
-    },
-    [sortedStages, advanceStage]
+    [updateOrderStatus]
   );
 
   const sortFn = (a: Order, b: Order) => {
@@ -90,16 +59,16 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
     return sortOrder === "oldest" ? timeA - timeB : timeB - timeA;
   };
 
-  const currentExpanded = expandedOrder
-    ? orders.find((o) => o.id === expandedOrder.id) ?? null
+  const currentExpanded = expandedOrderId
+    ? (orders.find((o) => o.id === expandedOrderId) ?? null)
     : null;
 
   if (orders.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-shopbox-muted">
         <div className="text-center">
-          <p className="text-2xl mb-2">Ingen aktive ordrer</p>
-          <p className="text-sm">Nye ordrer vises automatisk her</p>
+          <p className="text-2xl mb-2">{t("grid.empty.title")}</p>
+          <p className="text-sm">{t("grid.empty.subtitle")}</p>
         </div>
       </div>
     );
@@ -108,12 +77,10 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
   return (
     <>
       <div className="flex-1 flex overflow-hidden">
-        {sortedStages.map((stage, stageIndex) => {
+        {PIPELINE_STAGES.map((stage) => {
           const columnOrders = orders
             .filter((o) => o.currentStageId === stage.id)
             .sort(sortFn);
-          const isFirstStage = stageIndex === 0;
-
           return (
             <div
               key={stage.id}
@@ -146,11 +113,11 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
                   >
                     <OrderCard
                       order={order}
-                      activeStation={activeStation}
                       viewMode="kanban"
                       onKanbanClick={() => handleKanbanClick(order)}
-                      onKanbanBack={!isFirstStage ? () => handleKanbanBack(order) : undefined}
-                      onExpand={() => setExpandedOrder(order)}
+                      onExpand={() => {
+                        setExpandedOrderId(order.id);
+                      }}
                     />
                   </div>
                 ))}
@@ -163,7 +130,9 @@ export function KanbanView({ orders, activeStation }: KanbanViewProps) {
       {currentExpanded && (
         <OrderCardExpanded
           order={currentExpanded}
-          onClose={() => setExpandedOrder(null)}
+          onClose={() => {
+            setExpandedOrderId(null);
+          }}
         />
       )}
     </>

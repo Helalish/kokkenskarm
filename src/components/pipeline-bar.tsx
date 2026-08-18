@@ -1,6 +1,6 @@
 "use client";
 
-import { usePipeline } from "@/hooks/use-pipeline";
+import { PIPELINE_STAGES } from "@/lib/pipeline";
 import { useOrdersStore } from "@/stores/orders-store";
 import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
@@ -11,15 +11,13 @@ interface PipelineBarProps {
 }
 
 export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) {
-  const { stages } = usePipeline();
-  const { orders } = useOrdersStore();
+  const orders = useOrdersStore((s) => s.orders);
   const t = useT();
 
-  const sortedStages = [...stages].sort((a, b) => a.sortOrder - b.sortOrder);
   const totalOrders = orders.length;
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-shopbox-primary border-b border-shopbox-border overflow-x-auto">
+    <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-shopbox-primary border-b border-shopbox-border overflow-x-auto">
       <button
         className={cn(
           "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
@@ -32,7 +30,7 @@ export function PipelineBar({ activeStageId, onStageSelect }: PipelineBarProps) 
         {t("pipelineBar.all")} ({totalOrders})
       </button>
 
-      {sortedStages.map((stage) => {
+      {PIPELINE_STAGES.map((stage) => {
         const count = orders.filter((o) => o.currentStageId === stage.id).length;
         return (
           <button

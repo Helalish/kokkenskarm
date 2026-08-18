@@ -13,7 +13,7 @@ interface LanguageState {
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set) => ({
-      language: "da",
+      language: "en",
       setLanguage: (language) => set({ language }),
     }),
     { name: "kds-language" }

@@ -2,14 +2,14 @@
 
 import type { OrderItem } from "@/types/order";
 import { cn } from "@/lib/cn";
+import { OrderItemExtras } from "./order-item-extras";
 
 interface OrderItemRowProps {
   item: OrderItem;
-  dimmed?: boolean;
   onToggleDone: () => void;
 }
 
-export function OrderItemRow({ item, dimmed, onToggleDone }: OrderItemRowProps) {
+export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
   const isRemoved = item.changeStatus === "removed" || item.changeStatus === "refunded";
   const isAdded = item.changeStatus === "added";
 
@@ -19,7 +19,6 @@ export function OrderItemRow({ item, dimmed, onToggleDone }: OrderItemRowProps) 
         "flex items-start gap-2 py-1 px-1 rounded transition-colors",
         !isRemoved && "cursor-pointer hover:bg-white/5",
         item.isDone && !isRemoved && "opacity-40",
-        dimmed && "opacity-20 pointer-events-none",
         isRemoved && "pointer-events-none"
       )}
       onClick={(e) => {
@@ -79,22 +78,7 @@ export function OrderItemRow({ item, dimmed, onToggleDone }: OrderItemRowProps) 
             </span>
           )}
         </div>
-        {item.variants.length > 0 && (
-          <p className={cn(
-            "text-xs mt-0.5",
-            isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-shopbox-accent/70" : "text-shopbox-detail"
-          )}>
-            {item.variants.join(", ")}
-          </p>
-        )}
-        {item.modifications.length > 0 && (
-          <p className={cn(
-            "text-xs mt-0.5",
-            isRemoved ? "text-red-400/60 line-through" : isAdded ? "text-shopbox-accent/70" : "text-shopbox-warning"
-          )}>
-            {item.modifications.join(", ")}
-          </p>
-        )}
+        <OrderItemExtras item={item} compact isRemoved={isRemoved} isAdded={isAdded} />
       </div>
     </div>
   );

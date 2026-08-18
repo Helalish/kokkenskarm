@@ -1,19 +1,28 @@
 "use client";
 
 import type { CustomerInfo as CustomerInfoType } from "@/types/order";
+import { cn } from "@/lib/cn";
 
 interface CustomerInfoProps {
   info: CustomerInfoType;
+  className?: string;
+  spaced?: boolean;
 }
 
-export function CustomerInfo({ info }: CustomerInfoProps) {
+export function CustomerInfo({ info, className, spaced }: CustomerInfoProps) {
   return (
-    <div className="flex items-center gap-1.5 text-xs text-shopbox-text-secondary">
+    <div
+      className={cn(
+        "flex items-center text-xs text-shopbox-text-secondary",
+        spaced ? "justify-between gap-3" : "gap-1.5",
+        className
+      )}
+    >
       <span className="truncate">{info.name}</span>
       {info.phone && (
         <>
-          <span className="text-shopbox-border">·</span>
-          <span className="tabular-nums">{info.phone}</span>
+          {!spaced && <span className="text-shopbox-border">·</span>}
+          <span className="tabular-nums shrink-0">{info.phone}</span>
         </>
       )}
     </div>

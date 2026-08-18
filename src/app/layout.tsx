@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ToastContainer } from "@/components/toast-container";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -13,7 +13,6 @@ const lexend = Lexend({
 export const metadata: Metadata = {
   title: "Shopbox KDS",
   description: "Kitchen Display System for Shopbox",
-  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -30,11 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="da" className={`${lexend.variable} h-full`}>
-      <body className="min-h-full bg-shopbox-surface text-shopbox-text font-[family-name:var(--font-lexend)] antialiased">
+    <html lang="en" className={`${lexend.variable} h-full`}>
+      <body className="min-h-full bg-shopbox-surface text-shopbox-text font-(family-name:--font-lexend) antialiased">
         <ThemeProvider>
           {children}
-          <ModeToggle />
+          <ToastContainer />
         </ThemeProvider>
       </body>
     </html>

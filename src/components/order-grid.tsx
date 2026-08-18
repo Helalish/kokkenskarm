@@ -2,27 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Order } from "@/types/order";
-import type { StationConfig } from "@/types/station";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useModeStore } from "@/stores/mode-store";
-import { usePipeline } from "@/hooks/use-pipeline";
+import { getStage } from "@/lib/pipeline";
 import { useT } from "@/hooks/use-t";
+import { cn } from "@/lib/cn";
 import { OrderCard } from "./order-card";
 import { OrderCardExpanded } from "./order-card-expanded";
 
 interface OrderGridProps {
   orders: Order[];
-  activeStation?: StationConfig | null;
 }
 
-export function OrderGrid({ orders, activeStation }: OrderGridProps) {
-  const { gridColumns, sortOrder } = useSettingsStore();
-  const isFullMode = useModeStore((s) => s.isFullMode);
-  const { stages } = usePipeline();
+export function OrderGrid({ orders }: OrderGridProps) {
+  const sortOrder = useSettingsStore((s) => s.sortOrder);
   const t = useT();
-  // DEMO mode is locked to a 4-column grid.
-  const effectiveGridColumns = isFullMode ? gridColumns : 4;
-  const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [expandedOrderStageId, setExpandedOrderStageId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
@@ -64,28 +59,26 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
     currentMap.forEach((stageId, orderId) => {
       const prevStageId = prevStageMapRef.current.get(orderId);
       if (prevStageId && prevStageId !== stageId) {
-        const stage = stages.find((s) => s.id === stageId);
+        const stage = getStage(stageId);
         if (stage) newAnimating.set(orderId, stage.color);
       }
     });
 
     if (newAnimating.size > 0) {
-      setAnimatingOrderIds(newAnimating);
-      setSelectedOrderId(null); // Clear selection after advancing
-      const timer = setTimeout(() => setAnimatingOrderIds(new Map()), 600);
+      const timer = setTimeout(() => {
+        setAnimatingOrderIds(newAnimating);
+        setSelectedOrderId(null); // Clear selection after advancing
+      }, 0);
+      const clearTimer = setTimeout(() => setAnimatingOrderIds(new Map()), 600);
       prevStageMapRef.current = currentMap;
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(clearTimer);
+      };
     }
 
     prevStageMapRef.current = currentMap;
-  }, [orders, stages]);
-
-  // Clear selection if the selected order was removed
-  useEffect(() => {
-    if (selectedOrderId && !orders.find((o) => o.id === selectedOrderId)) {
-      setSelectedOrderId(null);
-    }
-  }, [orders, selectedOrderId]);
+  }, [orders]);
 
   const sortedOrders = [...orders].sort((a, b) => {
     const timeA = new Date(a.createdAt).getTime();
@@ -99,9 +92,18 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
       : b.orderNumber - a.orderNumber;
   });
 
-  const currentExpanded = expandedOrder
-    ? orders.find((o) => o.id === expandedOrder.id) ?? null
-    : null;
+  // Drop stale selection during render — no effect needed
+  const effectiveSelectedId =
+    selectedOrderId && orders.some((o) => o.id === selectedOrderId)
+      ? selectedOrderId
+      : null;
+
+  const currentExpanded =
+    expandedOrderId && expandedOrderStageId
+      ? (orders.find(
+          (o) => o.id === expandedOrderId && o.currentStageId === expandedOrderStageId
+        ) ?? null)
+      : null;
 
   if (sortedOrders.length === 0) {
     return (
@@ -116,19 +118,11 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
 
   return (
     <>
-      <div
-        className="flex-1 p-4 overflow-y-auto"
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${effectiveGridColumns}, 1fr)`,
-          gap: "1rem",
-          alignContent: "start",
-        }}
-      >
+      <div className="flex-1 p-4 overflow-y-auto grid gap-4 content-start grid-cols-[repeat(auto-fill,minmax(min(100%,350px),1fr))]">
         {sortedOrders.map((order) => (
           <div
             key={order.id}
-            className={animatingOrderIds.has(order.id) ? "stage-change-pulse" : ""}
+            className={cn("min-w-0", animatingOrderIds.has(order.id) && "stage-change-pulse")}
             style={
               animatingOrderIds.has(order.id)
                 ? ({ "--pulse-color": animatingOrderIds.get(order.id) } as React.CSSProperties)
@@ -137,10 +131,12 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
           >
             <OrderCard
               order={order}
-              activeStation={activeStation}
-              isSelected={selectedOrderId === order.id}
+              isSelected={effectiveSelectedId === order.id}
               onSelect={() => setSelectedOrderId(prev => prev === order.id ? null : order.id)}
-              onExpand={() => setExpandedOrder(order)}
+              onExpand={() => {
+                setExpandedOrderId(order.id);
+                setExpandedOrderStageId(order.currentStageId);
+              }}
               isNew={newOrderIds.has(order.id)}
             />
           </div>
@@ -150,7 +146,10 @@ export function OrderGrid({ orders, activeStation }: OrderGridProps) {
       {currentExpanded && (
         <OrderCardExpanded
           order={currentExpanded}
-          onClose={() => setExpandedOrder(null)}
+          onClose={() => {
+            setExpandedOrderId(null);
+            setExpandedOrderStageId(null);
+          }}
         />
       )}
     </>

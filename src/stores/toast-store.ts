@@ -2,14 +2,13 @@
 
 import { create } from "zustand";
 
-export type ToastType = "sms" | "undo" | "info";
+export type ToastType = "sms" | "info";
 
 export interface Toast {
   id: string;
   type: ToastType;
   message: string;
   detail?: string;
-  onUndo?: () => void;
   duration: number;
 }
 

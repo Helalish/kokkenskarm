@@ -2,14 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { useOrdersStore } from "@/stores/orders-store";
-import { usePipeline } from "@/hooks/use-pipeline";
 import { useSettingsStore } from "@/stores/settings-store";
-import { generateInitialOrders, generateMockOrder } from "@/services/mock-data-service";
+import { useAuthStore } from "@/stores/auth-store";
 import { playNewOrderSound } from "@/services/audio-service";
-import { useModeStore } from "@/stores/mode-store";
 import { useT } from "@/hooks/use-t";
 import { LanguageToggle } from "@/components/language-toggle";
+import { SessionGuard } from "@/components/session-guard";
+import { useCustomerDisplayPolling } from "@/hooks/use-customer-display-polling";
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -17,80 +16,117 @@ function Clock() {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+  const h = time.getHours().toString().padStart(2, "0");
+  const m = time.getMinutes().toString().padStart(2, "0");
   return (
     <span className="text-shopbox-text-secondary font-medium tabular-nums">
-      {time.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+      {`${h}:${m}`}
     </span>
   );
 }
 
+function CustomerBrand() {
+  const clientName = useAuthStore((s) => s.selectedClientName);
+  const clientIcon = useAuthStore((s) => s.selectedClientIcon);
+  const [failedIconUrl, setFailedIconUrl] = useState<string | null>(null);
+
+  const showImage = Boolean(clientIcon) && failedIconUrl !== clientIcon;
+  const fallbackName = clientName?.trim() || "Shopbox";
+
+  if (showImage && clientIcon) {
+    return (
+      // External Shopbox CDN URLs — plain <img> avoids remotePatterns config.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={clientIcon}
+        alt={fallbackName}
+        className="h-10 w-auto max-w-55 object-contain"
+        onError={() => setFailedIconUrl(clientIcon)}
+      />
+    );
+  }
+
+  return (
+    <h1 className="text-2xl font-bold tracking-tight text-shopbox-brand">
+      {fallbackName}
+    </h1>
+  );
+}
+
+function OrderNumberTile({
+  orderNumber,
+  className,
+  numberClassName,
+}: {
+  orderNumber: number;
+  className?: string;
+  numberClassName?: string;
+}) {
+  return (
+    <div
+      className={`w-fit rounded-2xl border p-3 text-center sm:p-5 order-card-enter ${className ?? ""}`}
+    >
+      <p
+        className={`font-black tracking-tight tabular-nums leading-none whitespace-nowrap text-[clamp(1.75rem,5vw,3rem)] ${numberClassName ?? ""}`}
+      >
+        {orderNumber}
+      </p>
+    </div>
+  );
+}
+
 export default function CustomerDisplayPage() {
-  const { orders, setOrders, addOrder } = useOrdersStore();
-  const { stages, getFirstStageId } = usePipeline();
-  const { soundEnabled } = useSettingsStore();
-  const { isFullMode } = useModeStore();
+  return (
+    <SessionGuard>
+      <CustomerDisplayPageContent />
+    </SessionGuard>
+  );
+}
+
+function CustomerDisplayPageContent() {
+  const { inProgressOrders, readyOrders, isLoading } = useCustomerDisplayPolling();
+  const soundEnabled = useSettingsStore((s) => s.remote?.soundEnabled ?? false);
   const t = useT();
-  const [initialized, setInitialized] = useState(false);
   const [recentlyReady, setRecentlyReady] = useState<Set<string>>(new Set());
-  const prevOrdersRef = useRef<Map<string, string>>(new Map());
+  const prevReadyIdsRef = useRef<Set<string> | null>(null);
 
-  // Load initial mock orders if none exist
+  // Highlight + sound when an order newly appears in "ready"
   useEffect(() => {
-    if (initialized || stages.length === 0) return;
-    const firstStageId = getFirstStageId();
-    if (!firstStageId) return;
-    if (orders.length === 0) {
-      setOrders(generateInitialOrders(firstStageId, 8));
+    if (isLoading) return;
+
+    const currentReadyIds = new Set(readyOrders.map((o) => o.id));
+
+    if (prevReadyIdsRef.current === null) {
+      prevReadyIdsRef.current = currentReadyIds;
+      return;
     }
-    setInitialized(true);
-  }, [stages.length, initialized, orders.length, getFirstStageId, setOrders]);
 
-  // Simulate new orders arriving
-  useEffect(() => {
-    if (!initialized) return;
-    const interval = setInterval(() => {
-      const firstStageId = getFirstStageId();
-      if (firstStageId) addOrder(generateMockOrder(firstStageId));
-    }, 15000 + Math.random() * 15000);
-    return () => clearInterval(interval);
-  }, [initialized, getFirstStageId, addOrder]);
-
-  // Track which orders just moved to "ready" for animation
-  useEffect(() => {
-    const terminalIds = new Set(stages.filter((s) => s.isTerminal).map((s) => s.id));
     const newReady = new Set<string>();
-
-    for (const order of orders) {
-      const prevStage = prevOrdersRef.current.get(order.id);
-      if (terminalIds.has(order.currentStageId) && prevStage && !terminalIds.has(prevStage)) {
-        newReady.add(order.id);
+    for (const id of currentReadyIds) {
+      if (!prevReadyIdsRef.current.has(id)) {
+        newReady.add(id);
       }
     }
 
-    // Update prev snapshot
-    const snapshot = new Map<string, string>();
-    for (const o of orders) snapshot.set(o.id, o.currentStageId);
-    prevOrdersRef.current = snapshot;
+    prevReadyIdsRef.current = currentReadyIds;
 
     if (newReady.size > 0) {
       if (soundEnabled) playNewOrderSound();
-      setRecentlyReady(newReady);
-      const timer = setTimeout(() => setRecentlyReady(new Set()), 5000);
-      return () => clearTimeout(timer);
+      const showTimer = setTimeout(() => setRecentlyReady(newReady), 0);
+      const clearTimer = setTimeout(() => setRecentlyReady(new Set()), 5000);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(clearTimer);
+      };
     }
-  }, [orders, stages, soundEnabled]);
-
-  // Separate orders
-  const terminalStageIds = new Set(stages.filter((s) => s.isTerminal).map((s) => s.id));
-  const inProgressOrders = orders.filter((o) => !terminalStageIds.has(o.currentStageId));
-  const readyOrders = orders.filter((o) => terminalStageIds.has(o.currentStageId));
+  }, [readyOrders, soundEnabled, isLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-black overflow-hidden select-none">
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-white tracking-tight">Shopbox</h1>
+          <CustomerBrand />
           <span className="text-sm text-shopbox-muted">{t("customer.orderStatus")}</span>
         </div>
         <div className="flex items-center gap-4">
@@ -100,7 +136,7 @@ export default function CustomerDisplayPage() {
             href="/kds"
             className="text-[10px] text-white/20 hover:text-white/40 transition-colors"
           >
-            KDS
+            {t("customer.kdsLink")}
           </Link>
         </div>
       </div>
@@ -108,7 +144,7 @@ export default function CustomerDisplayPage() {
       {/* Main content — two columns */}
       <div className="flex-1 flex overflow-hidden">
 
-        {/* Under tilberedning */}
+        {/* Preparing */}
         <div className="flex-1 flex flex-col border-r border-white/10">
           <div className="px-8 py-5">
             <div className="flex items-center gap-3">
@@ -119,22 +155,15 @@ export default function CustomerDisplayPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto px-8 pb-8">
-            <div className="grid grid-cols-3 gap-4">
+          <div className="flex-1 overflow-auto px-4 pb-6 sm:px-8 sm:pb-8">
+            <div className="flex flex-wrap items-start gap-3 sm:gap-4">
               {inProgressOrders.map((order) => (
-                <div
+                <OrderNumberTile
                   key={order.id}
-                  className="rounded-2xl bg-white/5 border border-white/10 p-6 text-center order-card-enter"
-                >
-                  <p className="text-5xl font-black text-white tracking-tight">
-                    {order.orderNumber}
-                  </p>
-                  {isFullMode && order.customerInfo?.name && (
-                    <p className="text-base text-white/50 mt-2 truncate">
-                      {order.customerInfo.name.split(" ")[0]}
-                    </p>
-                  )}
-                </div>
+                  orderNumber={order.orderNumber}
+                  className="bg-white/5 border-white/10"
+                  numberClassName="text-white"
+                />
               ))}
             </div>
             {inProgressOrders.length === 0 && (
@@ -145,7 +174,7 @@ export default function CustomerDisplayPage() {
           </div>
         </div>
 
-        {/* Klar til afhentning */}
+        {/* Ready for pickup */}
         <div className="flex-1 flex flex-col bg-shopbox-accent/5">
           <div className="px-8 py-5">
             <div className="flex items-center gap-3">
@@ -156,32 +185,21 @@ export default function CustomerDisplayPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto px-8 pb-8">
-            <div className="grid grid-cols-3 gap-4">
+          <div className="flex-1 overflow-auto px-4 pb-6 sm:px-8 sm:pb-8">
+            <div className="flex flex-wrap items-start gap-3 sm:gap-4">
               {readyOrders.map((order) => {
                 const isNew = recentlyReady.has(order.id);
                 return (
-                  <div
+                  <OrderNumberTile
                     key={order.id}
-                    className={`rounded-2xl border p-6 text-center transition-all duration-500 ${
+                    orderNumber={order.orderNumber}
+                    className={`transition-all duration-500 ${
                       isNew
                         ? "bg-shopbox-accent/20 border-shopbox-accent scale-105 shadow-[0_0_30px_rgba(0,174,102,0.3)]"
                         : "bg-shopbox-accent/10 border-shopbox-accent/30"
                     }`}
-                  >
-                    <p className={`text-5xl font-black tracking-tight ${
-                      isNew ? "text-shopbox-accent" : "text-white"
-                    }`}>
-                      {order.orderNumber}
-                    </p>
-                    {isFullMode && order.customerInfo?.name && (
-                      <p className={`text-base mt-2 truncate ${
-                        isNew ? "text-shopbox-accent/70" : "text-white/50"
-                      }`}>
-                        {order.customerInfo.name.split(" ")[0]}
-                      </p>
-                    )}
-                  </div>
+                    numberClassName={isNew ? "text-shopbox-accent" : "text-white"}
+                  />
                 );
               })}
             </div>

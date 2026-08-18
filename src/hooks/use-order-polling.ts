@@ -1,62 +1,40 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipelineStore } from "@/stores/pipeline-store";
-import type { Order } from "@/types/order";
+import { fetchOrders as shopboxFetchOrders } from "@/api/orders";
+import { useKdsLiveSync, type KdsLiveSyncState } from "@/hooks/use-kds-live-sync";
 
-const POLL_INTERVAL = 8000; // 8 seconds
+export function useOrderPolling(): KdsLiveSyncState {
+  const setOrders = useOrdersStore((s) => s.setOrders);
+  const pendingMutations = useOrdersStore((s) => s.pendingMutations);
+  const queuedRefetchRef = useRef(false);
 
-export function useOrderPolling(enabled: boolean) {
-  const { orders, addOrder, setOrders } = useOrdersStore();
-  const { getFirstStageId } = usePipelineStore();
-  const knownOrderIdsRef = useRef<Set<string>>(new Set());
-  const dismissedIdsRef = useRef<Set<string>>(new Set());
-
-  // Track dismissed orders to avoid re-adding them
-  const { dismissedOrders } = useOrdersStore();
-  useEffect(() => {
-    dismissedIdsRef.current = new Set(dismissedOrders.map((o) => o.id));
-  }, [dismissedOrders]);
-
-  // Track known orders
-  useEffect(() => {
-    knownOrderIdsRef.current = new Set(orders.map((o) => o.id));
-  }, [orders]);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    async function pollOrders() {
-      try {
-        const response = await fetch("/api/orders");
-        if (!response.ok) return;
-
-        const data = await response.json();
-        const fetchedOrders: Order[] = data.orders ?? [];
-        const firstStageId = getFirstStageId();
-
-        for (const order of fetchedOrders) {
-          // Skip dismissed and already-known orders
-          if (dismissedIdsRef.current.has(order.id)) continue;
-          if (knownOrderIdsRef.current.has(order.id)) continue;
-
-          // Assign to first pipeline stage if not set
-          if (!order.currentStageId && firstStageId) {
-            order.currentStageId = firstStageId;
-          }
-
-          addOrder(order);
-        }
-      } catch (error) {
-        console.error("Order polling error:", error);
-      }
+  const refresh = useCallback(async () => {
+    // Don't replace optimistic UI mid-write — queue one refetch instead.
+    if (useOrdersStore.getState().pendingMutations > 0) {
+      queuedRefetchRef.current = true;
+      return;
     }
 
-    // Initial fetch
-    pollOrders();
+    const orders = (await shopboxFetchOrders()) ?? [];
 
-    const interval = setInterval(pollOrders, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [enabled, getFirstStageId, addOrder]);
+    if (useOrdersStore.getState().pendingMutations > 0) {
+      queuedRefetchRef.current = true;
+      return;
+    }
+
+    setOrders(orders);
+  }, [setOrders]);
+
+  const { isLoading, error, refetch } = useKdsLiveSync({ refresh });
+
+  // Flush any refetch deferred while writes were in flight.
+  useEffect(() => {
+    if (pendingMutations > 0 || !queuedRefetchRef.current) return;
+    queuedRefetchRef.current = false;
+    void refetch();
+  }, [pendingMutations, refetch]);
+
+  return { isLoading, error, refetch };
 }

@@ -9,11 +9,11 @@ interface OrderTimerProps {
 }
 
 export function OrderTimer({ createdAt }: OrderTimerProps) {
-  const { timerWarningSeconds, timerCriticalSeconds } = useSettingsStore();
+  const remote = useSettingsStore((s) => s.remote);
   const { formatted, status } = useOrderTimer(
     createdAt,
-    timerWarningSeconds,
-    timerCriticalSeconds
+    remote?.timerWarningSeconds ?? 0,
+    remote?.timerCriticalSeconds ?? 0
   );
 
   return (

@@ -2,14 +2,17 @@
 
 :root {
   --shopbox-primary: #111111;
-  --shopbox-accent: #00AE66;
+  --shopbox-brand: #0E9E73;
+  --shopbox-accent: #22C55E;
   --shopbox-light: #E7F5F1;
   --shopbox-surface: #000000;
   --shopbox-card: #1A1A1A;
+  --shopbox-card-header: #1F2838;
   --shopbox-card-hover: #252525;
   --shopbox-border: #333333;
-  --shopbox-warning: #F59E0B;
-  --shopbox-critical: #EF4444;
+  --sb-border-tertiary: #98A2B3;
+  --shopbox-warning: #F79009;
+  --shopbox-critical: #F04438;
   --shopbox-muted: #707070;
   --shopbox-text: #FFFFFF;
   --shopbox-text-secondary: #B0B0B0;
@@ -23,12 +26,15 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-shopbox-primary: var(--shopbox-primary);
+  --color-shopbox-brand: var(--shopbox-brand);
   --color-shopbox-accent: var(--shopbox-accent);
   --color-shopbox-light: var(--shopbox-light);
   --color-shopbox-surface: var(--shopbox-surface);
   --color-shopbox-card: var(--shopbox-card);
+  --color-shopbox-card-header: var(--shopbox-card-header);
   --color-shopbox-card-hover: var(--shopbox-card-hover);
   --color-shopbox-border: var(--shopbox-border);
+  --color-sb-border-tertiary: var(--sb-border-tertiary);
   --color-shopbox-warning: var(--shopbox-warning);
   --color-shopbox-critical: var(--shopbox-critical);
   --color-shopbox-muted: var(--shopbox-muted);
@@ -41,6 +47,17 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-lexend), sans-serif;
+}
+
+/* Keep dark theme when the browser autofills saved credentials */
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--shopbox-text) !important;
+  caret-color: var(--shopbox-text);
+  box-shadow: 0 0 0 1000px var(--shopbox-surface) inset !important;
+  transition: background-color 99999s ease-in-out 0s;
 }
 
 /* Prevent text selection on order cards (kitchen environment) */

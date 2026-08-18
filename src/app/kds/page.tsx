@@ -1,124 +1,102 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOrdersStore } from "@/stores/orders-store";
-import { usePipeline } from "@/hooks/use-pipeline";
-import { useStationStore } from "@/stores/station-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { generateInitialOrders, generateMockOrder } from "@/services/mock-data-service";
-import { filterOrdersByStation } from "@/lib/category-filter";
 import { playNewOrderSound } from "@/services/audio-service";
-import { useModeStore } from "@/stores/mode-store";
 import { useOrderPolling } from "@/hooks/use-order-polling";
+import { useT } from "@/hooks/use-t";
 import { OrderGrid } from "@/components/order-grid";
 import { KanbanView } from "@/components/kanban-view";
 import { SummaryView } from "@/components/summary-view";
 import { PipelineBar } from "@/components/pipeline-bar";
 import { KdsHeader } from "@/components/kds-header";
+import { SessionGuard } from "@/components/session-guard";
 
 export default function KdsPage() {
-  const { orders, setOrders, addOrder, dismissOrder } = useOrdersStore();
-  const { stages, getFirstStageId } = usePipeline();
-  const { getActiveStation } = useStationStore();
-  const { soundEnabled, viewMode, autoDismissReadySeconds } = useSettingsStore();
-  const { isFullMode } = useModeStore();
+  return (
+    <SessionGuard>
+      <KdsPageContent />
+    </SessionGuard>
+  );
+}
+
+function KdsPageContent() {
+  const orders = useOrdersStore((s) => s.orders);
+  const viewMode = useSettingsStore((s) => s.viewMode);
+  const remote = useSettingsStore((s) => s.remote);
+  const soundEnabled = remote?.soundEnabled ?? false;
+  const autoDismissReadySeconds = remote?.autoDismissReadySeconds ?? 0;
+  const t = useT();
   const [activeStageFilter, setActiveStageFilter] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
-  const prevOrderCountRef = useRef(0);
+  const prevOrderCountRef = useRef(orders.length);
 
-  // Clear stage filter when switching to kanban
-  useEffect(() => {
-    if (viewMode === "kanban") {
-      setActiveStageFilter(null);
-    }
-  }, [viewMode]);
-
-  // Load initial mock orders
-  useEffect(() => {
-    if (initialized || stages.length === 0) return;
-    const firstStageId = getFirstStageId();
-    if (!firstStageId) return;
-
-    if (orders.length === 0) {
-      setOrders(generateInitialOrders(firstStageId, 8));
-    }
-    prevOrderCountRef.current = orders.length || 8;
-    setInitialized(true);
-  }, [stages.length, initialized, orders.length, getFirstStageId, setOrders]);
+  const { isLoading } = useOrderPolling();
 
   // Play sound when new orders arrive
   useEffect(() => {
-    if (!initialized) return;
+    if (isLoading) return;
     if (orders.length > prevOrderCountRef.current && soundEnabled) {
       playNewOrderSound();
     }
     prevOrderCountRef.current = orders.length;
-  }, [orders.length, initialized, soundEnabled]);
+  }, [orders.length, isLoading, soundEnabled]);
 
-  // Simulate new orders arriving every 15-30 seconds
+  // Stable interval — read latest orders from the store inside the tick.
   useEffect(() => {
-    if (!initialized) return;
-    const interval = setInterval(() => {
-      const firstStageId = getFirstStageId();
-      if (firstStageId) {
-        addOrder(generateMockOrder(firstStageId));
-      }
-    }, 15000 + Math.random() * 15000);
-    return () => clearInterval(interval);
-  }, [initialized, getFirstStageId, addOrder]);
-
-  // Auto-dismiss orders in terminal stage after configured time
-  useEffect(() => {
-    if (autoDismissReadySeconds <= 0 || !initialized) return;
-    const terminalStageIds = new Set(stages.filter((s) => s.isTerminal).map((s) => s.id));
-    if (terminalStageIds.size === 0) return;
+    if (autoDismissReadySeconds <= 0) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      for (const order of orders) {
+      const { orders: current, updateOrderStatus: dismiss } = useOrdersStore.getState();
+      for (const order of current) {
         if (
-          terminalStageIds.has(order.currentStageId) &&
+          order.currentStageId === "ready" &&
           order.stageEnteredAt &&
           now - new Date(order.stageEnteredAt).getTime() >= autoDismissReadySeconds * 1000
         ) {
-          dismissOrder(order.id);
+          void dismiss(order.id, "done");
         }
       }
     }, 5000);
+
     return () => clearInterval(interval);
-  }, [autoDismissReadySeconds, initialized, stages, orders, dismissOrder]);
+  }, [autoDismissReadySeconds]);
 
-  // MVP mode: also poll real orders from Shopbox API (when configured)
-  useOrderPolling(isFullMode);
+  const filteredOrders =
+    activeStageFilter && viewMode !== "kanban"
+      ? orders.filter((o) => o.currentStageId === activeStageFilter)
+      : orders;
 
-  // Apply filters
-  const activeStation = getActiveStation();
-  let filteredOrders = filterOrdersByStation(orders, activeStation);
-  // Station locked to a specific stage
-  if (activeStation?.lockedStageId) {
-    filteredOrders = filteredOrders.filter((o) => o.currentStageId === activeStation.lockedStageId);
-  } else if (activeStageFilter && viewMode !== "kanban") {
-    filteredOrders = filteredOrders.filter((o) => o.currentStageId === activeStageFilter);
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-screen">
+        <KdsHeader />
+        <div className="flex-1 flex items-center justify-center text-shopbox-muted">
+          <div className="text-center">
+            <div className="h-8 w-8 border-2 border-shopbox-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-lg">{t("loading.orders")}</p>
+          </div>
+        </div>
+      </div>
+    );
   }
-
-  // DEMO mode forces grid view
-  const effectiveViewMode = isFullMode ? viewMode : "grid";
 
   return (
     <div className="flex flex-col h-screen">
       <KdsHeader />
-      {effectiveViewMode === "grid" && (
+      {viewMode === "grid" && (
         <PipelineBar
           activeStageId={activeStageFilter}
           onStageSelect={setActiveStageFilter}
         />
       )}
-      {effectiveViewMode === "kanban" ? (
-        <KanbanView orders={filteredOrders} activeStation={activeStation} />
-      ) : effectiveViewMode === "summary" ? (
-        <SummaryView orders={filteredOrders} activeStation={activeStation} />
+      {viewMode === "kanban" ? (
+        <KanbanView orders={filteredOrders} />
+      ) : viewMode === "summary" ? (
+        <SummaryView orders={filteredOrders} />
       ) : (
-        <OrderGrid orders={filteredOrders} activeStation={activeStation} />
+        <OrderGrid orders={filteredOrders} />
       )}
     </div>
   );

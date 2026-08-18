@@ -8,13 +8,25 @@ export interface CustomerInfo {
   email?: string;
 }
 
+/** Line from modifiers / add_ons / opt_outs on a Shopbox product. */
+export interface OrderItemExtra {
+  id: string;
+  name: string;
+  quantity: number;
+}
+
 export interface OrderItem {
   id: string;
   name: string;
   quantity: number;
+  /** product_variance — grey in UI */
   variants: string[];
-  modifications: string[];
-  ingredients: string[];
+  /** Mandatory choices from `modifiers` — orange in UI */
+  modifiers: OrderItemExtra[];
+  /** From `add_ons` — orange in UI */
+  addOns: OrderItemExtra[];
+  /** From `opt_outs` — red + strikethrough in UI */
+  optOuts: OrderItemExtra[];
   category: string;
   isDone: boolean;
   changeStatus?: "added" | "removed" | "refunded";
@@ -38,4 +50,5 @@ export interface Order {
   stageEnteredAt?: string;
   smsSentCount?: number;
   lastSmsSentAt?: string;
+  orderType?: string;
 }
