@@ -17,7 +17,7 @@ export function KanbanView({ orders }: KanbanViewProps) {
   const sortOrder = useSettingsStore((s) => s.sortOrder);
   const updateOrderStatus = useOrdersStore((s) => s.updateOrderStatus);
   const t = useT();
-  const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
 
   const prevStageMapRef = useRef<Map<string, string>>(new Map());
@@ -59,8 +59,8 @@ export function KanbanView({ orders }: KanbanViewProps) {
     return sortOrder === "oldest" ? timeA - timeB : timeB - timeA;
   };
 
-  const currentExpanded = expandedOrder
-    ? orders.find((o) => o.id === expandedOrder.id) ?? null
+  const currentExpanded = expandedOrderId
+    ? (orders.find((o) => o.id === expandedOrderId) ?? null)
     : null;
 
   if (orders.length === 0) {
@@ -115,7 +115,9 @@ export function KanbanView({ orders }: KanbanViewProps) {
                       order={order}
                       viewMode="kanban"
                       onKanbanClick={() => handleKanbanClick(order)}
-                      onExpand={() => setExpandedOrder(order)}
+                      onExpand={() => {
+                        setExpandedOrderId(order.id);
+                      }}
                     />
                   </div>
                 ))}
@@ -128,7 +130,9 @@ export function KanbanView({ orders }: KanbanViewProps) {
       {currentExpanded && (
         <OrderCardExpanded
           order={currentExpanded}
-          onClose={() => setExpandedOrder(null)}
+          onClose={() => {
+            setExpandedOrderId(null);
+          }}
         />
       )}
     </>

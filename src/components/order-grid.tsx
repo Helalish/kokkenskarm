@@ -16,7 +16,8 @@ interface OrderGridProps {
 export function OrderGrid({ orders }: OrderGridProps) {
   const sortOrder = useSettingsStore((s) => s.sortOrder);
   const t = useT();
-  const [expandedOrder, setExpandedOrder] = useState<Order | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [expandedOrderStageId, setExpandedOrderStageId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const [animatingOrderIds, setAnimatingOrderIds] = useState<Map<string, string>>(new Map());
@@ -97,9 +98,12 @@ export function OrderGrid({ orders }: OrderGridProps) {
       ? selectedOrderId
       : null;
 
-  const currentExpanded = expandedOrder
-    ? orders.find((o) => o.id === expandedOrder.id) ?? null
-    : null;
+  const currentExpanded =
+    expandedOrderId && expandedOrderStageId
+      ? (orders.find(
+          (o) => o.id === expandedOrderId && o.currentStageId === expandedOrderStageId
+        ) ?? null)
+      : null;
 
   if (sortedOrders.length === 0) {
     return (
@@ -129,7 +133,10 @@ export function OrderGrid({ orders }: OrderGridProps) {
               order={order}
               isSelected={effectiveSelectedId === order.id}
               onSelect={() => setSelectedOrderId(prev => prev === order.id ? null : order.id)}
-              onExpand={() => setExpandedOrder(order)}
+              onExpand={() => {
+                setExpandedOrderId(order.id);
+                setExpandedOrderStageId(order.currentStageId);
+              }}
               isNew={newOrderIds.has(order.id)}
             />
           </div>
@@ -139,7 +146,10 @@ export function OrderGrid({ orders }: OrderGridProps) {
       {currentExpanded && (
         <OrderCardExpanded
           order={currentExpanded}
-          onClose={() => setExpandedOrder(null)}
+          onClose={() => {
+            setExpandedOrderId(null);
+            setExpandedOrderStageId(null);
+          }}
         />
       )}
     </>
