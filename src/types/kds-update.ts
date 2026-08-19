@@ -2,6 +2,7 @@ export type KdsUpdateEventType =
   | "order_added"
   | "order_status_changed"
   | "product_prepared_changed"
+  | "payment_status_changed"
   | "settings_updated";
 
 export type KdsUpdateEvent = {
@@ -21,9 +22,10 @@ export const ORDER_REFETCH_EVENTS = new Set<KdsUpdateEventType>([
   "order_added",
   "order_status_changed",
   "product_prepared_changed",
+  "payment_status_changed",
 ]);
 
-/** Customer display only cares about stage membership, not item prepared toggles. */
+/** Customer display only cares about stage membership, not payment or item prepared toggles. */
 export const CUSTOMER_DISPLAY_ORDER_EVENTS = new Set<KdsUpdateEventType>([
   "order_added",
   "order_status_changed",
@@ -36,6 +38,7 @@ const EVENTS = new Set<string>([
   "order_added",
   "order_status_changed",
   "product_prepared_changed",
+  "payment_status_changed",
   "settings_updated",
 ]);
 
