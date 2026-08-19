@@ -18,6 +18,7 @@ function itemUiKey(item: OrderItem): string {
     item.modifiers.map((m) => `${m.id}:${m.quantity}`).join(","),
     item.addOns.map((m) => `${m.id}:${m.quantity}`).join(","),
     item.optOuts.map((m) => `${m.id}:${m.quantity}`).join(","),
+    item.comment ?? "",
   ].join(";");
 }
 

@@ -53,6 +53,7 @@ function transformProducts(raw: any): OrderItem[] {
       modifiers: transformExtras(p.modifiers),
       addOns: transformExtras(p.add_ons),
       optOuts: transformExtras(p.opt_outs),
+      comment: nonEmpty(p.comment),
       category: "",
       isDone: p.prepared === true || p.prepared === "true",
     }));

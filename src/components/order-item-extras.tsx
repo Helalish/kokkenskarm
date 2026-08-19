@@ -1,6 +1,7 @@
 "use client";
 
 import type { OrderItem, OrderItemExtra } from "@/types/order";
+import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/cn";
 
 interface OrderItemExtrasProps {
@@ -17,6 +18,7 @@ function extraLabel(extra: OrderItemExtra): string {
 
 /**
  * Order-line extras:
+ * - comment → directly under product name, "Note:" prefix, one step quieter than the name
  * - variants (product_variance) → grey
  * - modifiers + add_ons → orange
  * - opt_outs → red + strikethrough
@@ -27,9 +29,14 @@ export function OrderItemExtras({
   isRemoved = false,
   isAdded = false,
 }: OrderItemExtrasProps) {
+  const t = useT();
   const orangeExtras = [...item.modifiers, ...item.addOns];
+  const comment = item.comment?.trim() ?? "";
   const hasExtras =
-    item.variants.length > 0 || orangeExtras.length > 0 || item.optOuts.length > 0;
+    item.variants.length > 0 ||
+    orangeExtras.length > 0 ||
+    item.optOuts.length > 0 ||
+    comment.length > 0;
 
   if (!hasExtras) return null;
 
@@ -41,6 +48,11 @@ export function OrderItemExtras({
 
   return (
     <div className={cn("mt-0.5 space-y-0.5", compact ? "text-xs" : "text-sm")}>
+      {comment && (
+        <p className={cn("font-normal", muted ?? "text-shopbox-detail")}>
+          {t("card.productNote", { note: comment })}
+        </p>
+      )}
       {item.variants.map((variant) => (
         <p key={variant} className={cn("font-medium", muted ?? "text-shopbox-detail")}>
           {variant}

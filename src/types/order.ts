@@ -27,6 +27,8 @@ export interface OrderItem {
   addOns: OrderItemExtra[];
   /** From `opt_outs` — red + strikethrough in UI */
   optOuts: OrderItemExtra[];
+  /** Product-line comment from POS (`comment` on the Shopbox product). */
+  comment?: string;
   category: string;
   isDone: boolean;
   changeStatus?: "added" | "removed" | "refunded";
