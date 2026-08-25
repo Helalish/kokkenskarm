@@ -2,6 +2,8 @@ export type OrderSource = "pos" | "weorder" | "kiosk" | "qr";
 
 export type PaymentStatus = "paid" | "unpaid" | "partial";
 
+export type OrderType = "takeaway" | "basket";
+
 export interface CustomerInfo {
   name: string;
   phone?: string;
@@ -52,5 +54,5 @@ export interface Order {
   stageEnteredAt?: string;
   smsSentCount?: number;
   lastSmsSentAt?: string;
-  orderType?: string;
+  orderType?: OrderType;
 }

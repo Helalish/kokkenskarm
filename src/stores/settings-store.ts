@@ -50,6 +50,7 @@ function toShopboxPayload(remote: RemoteSettings): ShopboxKdsSettings {
     auto_advance_when_all_products_done: remote.autoAdvanceWhenAllDone,
     play_sound_on_new_orders: remote.soundEnabled,
     sms_enabled: remote.smsEnabled,
+    show_paid_pos_orders: true,
   };
 }
 

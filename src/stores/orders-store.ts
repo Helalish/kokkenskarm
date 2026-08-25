@@ -104,7 +104,7 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     }));
 
     get().beginMutation();
-    void updateProductPrepared(orderId, itemId, next)
+    void updateProductPrepared(orderId, itemId, next, order.orderType ?? "takeaway")
       .catch(() => {
         // Rollback on failure
         set((state) => ({
@@ -146,7 +146,9 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     // Hold off Firestore-driven refetches until every prepared PATCH finishes,
     // otherwise the first success can overwrite optimistic state mid-batch.
     get().beginMutation();
-    void Promise.allSettled(toUpdate.map((i) => updateProductPrepared(orderId, i.id, true)))
+    void Promise.allSettled(
+      toUpdate.map((i) => updateProductPrepared(orderId, i.id, true, order.orderType ?? "takeaway"))
+    )
       .then((results) => {
         const failedIds = toUpdate
           .filter((_, idx) => results[idx]?.status === "rejected")
