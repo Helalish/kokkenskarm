@@ -93,38 +93,84 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
 
     const previous = item.isDone;
     const next = !previous;
+    const moveBackToInProgress =
+      order.currentStageId === "ready" && previous && !next;
+    const previousStageId = order.currentStageId;
+    const previousStageEnteredAt = order.stageEnteredAt;
+    const orderType = order.orderType ?? "takeaway";
 
     // Optimistic UI update
     set((state) => ({
       orders: state.orders.map((o) =>
         o.id === orderId
-          ? { ...o, items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: next } : it)) }
+          ? {
+              ...o,
+              items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: next } : it)),
+              ...(moveBackToInProgress
+                ? { currentStageId: "in_progress", stageEnteredAt: new Date().toISOString() }
+                : {}),
+            }
           : o
       ),
     }));
 
     get().beginMutation();
-    void updateProductPrepared(orderId, itemId, next, order.orderType ?? "takeaway")
-      .catch(() => {
-        // Rollback on failure
-        set((state) => ({
-          orders: state.orders.map((o) =>
-            o.id === orderId
-              ? { ...o, items: o.items.map((it) => (it.id === itemId ? { ...it, isDone: previous } : it)) }
-              : o
-          ),
-        }));
-
-        useToastStore.getState().addToast({
-          type: "info",
-          message: "Failed to update item",
-          detail: "The change has been reverted. Please try again.",
-          duration: 4000,
-        });
-      })
-      .finally(() => {
+    void (async () => {
+      let preparedOk = false;
+      try {
+        await updateProductPrepared(orderId, itemId, next, orderType);
+        preparedOk = true;
+        if (moveBackToInProgress) {
+          await shopboxUpdateOrderStatus(orderId, {
+            order_type: orderType,
+            status: "in_progress",
+          });
+        }
+      } catch {
+        if (!preparedOk) {
+          set((state) => ({
+            orders: state.orders.map((o) =>
+              o.id === orderId
+                ? {
+                    ...o,
+                    currentStageId: previousStageId,
+                    stageEnteredAt: previousStageEnteredAt,
+                    items: o.items.map((it) =>
+                      it.id === itemId ? { ...it, isDone: previous } : it
+                    ),
+                  }
+                : o
+            ),
+          }));
+          useToastStore.getState().addToast({
+            type: "info",
+            message: "Failed to update item",
+            detail: "The change has been reverted. Please try again.",
+            duration: 4000,
+          });
+        } else {
+          set((state) => ({
+            orders: state.orders.map((o) =>
+              o.id === orderId
+                ? {
+                    ...o,
+                    currentStageId: previousStageId,
+                    stageEnteredAt: previousStageEnteredAt,
+                  }
+                : o
+            ),
+          }));
+          useToastStore.getState().addToast({
+            type: "info",
+            message: "Failed to update order status",
+            detail: "The item was updated. Please try moving the order again.",
+            duration: 4000,
+          });
+        }
+      } finally {
         get().endMutation();
-      });
+      }
+    })();
   },
 
   markAllItemsDone: (orderId) => {
