@@ -1,4 +1,4 @@
-import type { Order, OrderItem, OrderItemExtra, OrderSource, PaymentStatus } from "@/types/order";
+import type { Order, OrderItem, OrderItemExtra, OrderSource, OrderType, PaymentStatus } from "@/types/order";
 import { isKdsStageId } from "@/types/pipeline";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,7 +36,7 @@ function transformSingleOrder(raw: any): Order | null {
     isPreOrder: false,
     scheduledTime: raw.pickup_time ? unixToIso(raw.pickup_time) : undefined,
     notes: notes || undefined,
-    orderType: raw.order_type || undefined,
+    orderType: mapOrderType(raw.order_type),
   };
 }
 
@@ -53,6 +53,7 @@ function transformProducts(raw: any): OrderItem[] {
       modifiers: transformExtras(p.modifiers),
       addOns: transformExtras(p.add_ons),
       optOuts: transformExtras(p.opt_outs),
+      comment: nonEmpty(p.comment),
       category: "",
       isDone: p.prepared === true || p.prepared === "true",
     }));
@@ -86,6 +87,11 @@ function mapSource(source: string | undefined): OrderSource {
   if (s.includes("kiosk")) return "kiosk";
   if (s.includes("qr")) return "qr";
   return "pos";
+}
+
+function mapOrderType(orderType: string | undefined): OrderType | undefined {
+  if (orderType === "basket" || orderType === "takeaway") return orderType;
+  return undefined;
 }
 
 function mapPaymentStatus(status: string | undefined): PaymentStatus {

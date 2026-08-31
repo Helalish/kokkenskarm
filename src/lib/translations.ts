@@ -37,6 +37,7 @@ const da: Dict = {
   "card.deleted": "Slettet — lav ikke",
   "card.new": "NY",
   "card.refunded": "Refunderet",
+  "card.productNote": "Note: {note}",
 
   // Expanded card
   "expanded.unpaid": "IKKE BETALT",
@@ -227,6 +228,7 @@ const en: Dict = {
   "card.deleted": "Deleted — don't make",
   "card.new": "NEW",
   "card.refunded": "Refunded",
+  "card.productNote": "Note: {note}",
 
   // Expanded card
   "expanded.unpaid": "UNPAID",

@@ -205,13 +205,13 @@ export function OrderCardExpanded({ order, onClose }: OrderCardExpandedProps) {
                   </div>
                 )}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2">
                     {item.quantity > 1 && (
-                      <span className="font-bold text-shopbox-accent">{item.quantity}x</span>
+                      <span className="shrink-0 font-bold text-shopbox-accent">{item.quantity}x</span>
                     )}
                     <span
                       className={cn(
-                        "font-medium",
+                        "min-w-0 font-medium",
                         showItemCheckmarks && item.isDone && "line-through"
                       )}
                     >

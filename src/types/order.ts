@@ -2,6 +2,8 @@ export type OrderSource = "pos" | "weorder" | "kiosk" | "qr";
 
 export type PaymentStatus = "paid" | "unpaid" | "partial";
 
+export type OrderType = "takeaway" | "basket";
+
 export interface CustomerInfo {
   name: string;
   phone?: string;
@@ -27,6 +29,8 @@ export interface OrderItem {
   addOns: OrderItemExtra[];
   /** From `opt_outs` — red + strikethrough in UI */
   optOuts: OrderItemExtra[];
+  /** Product-line comment from POS (`comment` on the Shopbox product). */
+  comment?: string;
   category: string;
   isDone: boolean;
   changeStatus?: "added" | "removed" | "refunded";
@@ -50,5 +54,5 @@ export interface Order {
   stageEnteredAt?: string;
   smsSentCount?: number;
   lastSmsSentAt?: string;
-  orderType?: string;
+  orderType?: OrderType;
 }

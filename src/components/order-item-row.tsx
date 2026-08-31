@@ -50,17 +50,17 @@ export function OrderItemRow({ item, onToggleDone }: OrderItemRowProps) {
       )}
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-start gap-1.5">
           {item.quantity > 1 && (
             <span className={cn(
-              "font-bold",
+              "shrink-0 font-bold",
               isRemoved ? "text-red-500" : isAdded ? "text-shopbox-accent" : "text-shopbox-accent"
             )}>
               {item.quantity}x
             </span>
           )}
           <span className={cn(
-            "font-medium",
+            "min-w-0 font-medium",
             isRemoved && "line-through text-red-500 font-bold",
             isAdded && "text-shopbox-accent",
             !isRemoved && !isAdded && item.isDone && "line-through"

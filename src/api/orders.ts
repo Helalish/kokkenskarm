@@ -1,4 +1,4 @@
-import type { Order } from "@/types/order";
+import type { Order, OrderType } from "@/types/order";
 import type { KdsApiStatus } from "@/types/pipeline";
 import { transformShopboxOrders } from "@/services/shopbox-transformer";
 import { buildShopboxUrl, shopboxFetch } from "@/api/client";
@@ -17,7 +17,7 @@ export async function fetchOrders(status?: string): Promise<Order[]> {
 /** PATCH /branches/:branchId/kds/orders/:orderId/status */
 export async function updateOrderStatus(
   orderId: string,
-  body: { order_type: string; status: KdsApiStatus }
+  body: { order_type: OrderType; status: KdsApiStatus }
 ) {
   const url = buildShopboxUrl(`/kds/orders/${orderId}/status`);
   await shopboxFetch(url, {
@@ -31,12 +31,13 @@ export async function updateOrderStatus(
 export async function updateProductPrepared(
   orderId: string,
   productId: string,
-  prepared: boolean
+  prepared: boolean,
+  orderType: OrderType = "takeaway"
 ) {
   const url = buildShopboxUrl(`/kds/orders/${orderId}/products/${productId}`);
   await shopboxFetch(url, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prepared }),
+    body: JSON.stringify({ prepared, order_type: orderType }),
   });
 }

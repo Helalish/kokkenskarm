@@ -8,6 +8,7 @@ export interface ShopboxKdsSettings {
   auto_advance_when_all_products_done: boolean;
   play_sound_on_new_orders: boolean;
   sms_enabled: boolean;
+  show_paid_pos_orders?: boolean;
 }
 
 // Settings synced with Shopbox backend (app-facing shape)
